@@ -1,4 +1,5 @@
-export const APP_UPDATE_RELEASES_URL = 'https://github.com/Wxw-Gu/TraceMemo/releases/latest'
+export const APP_UPDATES_ENABLED = false
+export const APP_UPDATE_RELEASES_URL = 'https://github.com/gmll-star/TraceDigest/releases/latest'
 
 export type AppUpdateStatus =
   | 'idle'
@@ -12,7 +13,7 @@ export type AppUpdateStatus =
   | 'unsupported'
 
 export type AppUpdateCheckSource = 'startup' | 'manual'
-export type AppUpdateDelivery = 'automatic' | 'release-page'
+export type AppUpdateDelivery = 'automatic' | 'release-page' | 'disabled'
 
 export interface AppUpdateState {
   status: AppUpdateStatus

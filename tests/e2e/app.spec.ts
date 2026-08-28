@@ -17,7 +17,7 @@ test('APP-01 first launch renders a usable connection screen without uncaught er
   fixture.page.on('pageerror', (error) => pageErrors.push(error))
   try {
     await fixture.setWindowContentSize({ width: 820, height: 600 })
-    await expect(fixture.page.getByRole('heading', { name: 'TraceMemo（迹忆）' })).toBeVisible()
+    await expect(fixture.page.getByRole('heading', { name: 'TraceDigest' })).toBeVisible()
     await expect(fixture.page.getByRole('main')).not.toBeEmpty()
     expect(
       await fixture.page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
@@ -387,7 +387,7 @@ test('UPDATE-02 unsigned macOS update opens the latest release without downloadi
     const openedUrl = await fixture.page.evaluate(() =>
       window.electron.ipcRenderer.invoke('app-update:getOpenedDownloadUrl')
     )
-    expect(openedUrl).toBe('https://github.com/Wxw-Gu/TraceMemo/releases/latest')
+    expect(openedUrl).toBe('https://github.com/gmll-star/TraceDigest/releases/latest')
     await expect(fixture.page.getByRole('progressbar')).toHaveCount(0)
     expect(pageErrors).toEqual([])
   } finally {

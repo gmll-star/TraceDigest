@@ -86,9 +86,9 @@ func accountsDir(rootName string) (string, error) {
 	return filepath.Join(home, rootName, "wechat-connector", "accounts"), nil
 }
 
-// AccountsDir returns the TraceMemo directory where new credentials are stored.
+// AccountsDir returns the TraceDigest directory where new credentials are stored.
 func AccountsDir() (string, error) {
-	return accountsDir(".tracememo")
+	return accountsDir(".tracedigest")
 }
 
 // LegacyAccountsDir is read-only compatibility for v2.1.9 and earlier.
@@ -212,7 +212,7 @@ func loadCredentialsFromDir(dir string) ([]*Credentials, error) {
 	return result, nil
 }
 
-// LoadAllCredentials loads TraceMemo credentials first and falls back to the
+// LoadAllCredentials loads TraceDigest credentials first and falls back to the
 // untouched WechatExplorer directory for one-version upgrade compatibility.
 func LoadAllCredentials() ([]*Credentials, error) {
 	current, err := AccountsDir()

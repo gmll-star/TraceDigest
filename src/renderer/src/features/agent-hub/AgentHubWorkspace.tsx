@@ -5,13 +5,15 @@ import type {
   AgentHubStatus,
   WechatConnectorStatus
 } from '../../../../shared/agent-hub'
+import { AGENT_HUB_CUSTOM_INSTRUCTIONS_MAX_LENGTH } from '../../../../shared/agent-hub'
 import {
   Button,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
+  Textarea
 } from '../../components/ui'
 
 const STATUS_LABELS: Record<WechatConnectorStatus, string> = {
@@ -39,6 +41,16 @@ export function AgentHubWorkspace(): React.ReactElement {
   const [busy, setBusy] = React.useState(false)
   const [logs, setLogs] = React.useState<AgentHubLogEntry[]>([])
   const [logSource, setLogSource] = React.useState<'all' | AgentHubLogSource>('all')
+  const [customInstructions, setCustomInstructions] = React.useState('')
+  const [savedCustomInstructions, setSavedCustomInstructions] = React.useState('')
+  const [promptMaxLength, setPromptMaxLength] = React.useState(
+    AGENT_HUB_CUSTOM_INSTRUCTIONS_MAX_LENGTH
+  )
+  const [promptBusy, setPromptBusy] = React.useState(false)
+  const [promptNotice, setPromptNotice] = React.useState<{
+    kind: 'success' | 'error'
+    text: string
+  } | null>(null)
   const logBodyRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
@@ -49,6 +61,22 @@ export function AgentHubWorkspace(): React.ReactElement {
     void window.api.getAgentHubLogs().then((entries) => {
       if (mounted) setLogs(entries)
     })
+    void window.api
+      .getAgentHubPromptSettings()
+      .then((settings) => {
+        if (!mounted) return
+        setCustomInstructions(settings.customInstructions)
+        setSavedCustomInstructions(settings.customInstructions)
+        setPromptMaxLength(settings.maxLength)
+      })
+      .catch((error) => {
+        if (mounted) {
+          setPromptNotice({
+            kind: 'error',
+            text: error instanceof Error ? error.message : '自定义总结指令读取失败'
+          })
+        }
+      })
     const unsubscribe = window.api.onAgentHubStatus((next) => {
       if (mounted) setStatus(next)
     })
@@ -84,6 +112,32 @@ export function AgentHubWorkspace(): React.ReactElement {
     setLogs([])
   }
 
+  const savePrompt = async (value = customInstructions): Promise<void> => {
+    setPromptBusy(true)
+    setPromptNotice(null)
+    try {
+      const result = await window.api.saveAgentHubPromptSettings(value)
+      if (!result.success) {
+        setPromptNotice({ kind: 'error', text: result.error || '自定义总结指令保存失败' })
+        return
+      }
+      setCustomInstructions(result.settings.customInstructions)
+      setSavedCustomInstructions(result.settings.customInstructions)
+      setPromptMaxLength(result.settings.maxLength)
+      setPromptNotice({
+        kind: 'success',
+        text: result.settings.customInstructions ? '自定义总结指令已保存' : '已恢复默认总结规则'
+      })
+    } catch (error) {
+      setPromptNotice({
+        kind: 'error',
+        text: error instanceof Error ? error.message : '自定义总结指令保存失败'
+      })
+    } finally {
+      setPromptBusy(false)
+    }
+  }
+
   const runAction = async (
     action: () => Promise<{ status: AgentHubStatus; error?: string }>
   ): Promise<void> => {
@@ -103,7 +157,7 @@ export function AgentHubWorkspace(): React.ReactElement {
     <div className="agent-hub-workspace">
       <header className="agent-hub-header">
         <div>
-          <div className="agent-hub-eyebrow">TraceMemo</div>
+          <div className="agent-hub-eyebrow">TraceDigest</div>
           <h1>Agent Hub</h1>
           <p>让微信机器人安全调用聊天数据与 AI 能力。</p>
         </div>
@@ -196,12 +250,12 @@ export function AgentHubWorkspace(): React.ReactElement {
         <aside className="agent-hub-card agent-hub-capability-card">
           <span className="agent-hub-card-kicker">已启用能力</span>
           <h2>微信数据助手</h2>
-          <p>机器人通过本机 Agent Hub 调用 TraceMemo，不向公网暴露数据库。</p>
+          <p>机器人通过本机 Agent Hub 调用 TraceDigest，不向公网暴露数据库。</p>
           <div className="agent-hub-example">
-            <span>支持自然语言，可以这样问</span>
-            <strong>“最近 5 条消息是谁？”</strong>
-            <strong>“帮我看看最近跟xx聊了些什么”</strong>
-            <strong>“生成产品交流群今天的群聊总结图片”</strong>
+            <span>支持自然语言总结，可以这样问</span>
+            <strong>“总结产品交流群最近 100 条消息”</strong>
+            <strong>“总结产品交流群今天下午的消息”</strong>
+            <strong>“总结技术群里张三最近的发言”</strong>
           </div>
           <ul>
             <li>
@@ -218,7 +272,11 @@ export function AgentHubWorkspace(): React.ReactElement {
             </li>
             <li>
               <i />
-              使用已配置 AI 理解自然语言
+              AI 自主调用只读群聊查询工具
+            </li>
+            <li>
+              <i />
+              不提供删除、修改、群发或主动发送工具
             </li>
             <li className="agent-hub-capability-status">
               <i className={status.dataApi === 'online' ? '' : 'offline'} />
@@ -231,6 +289,62 @@ export function AgentHubWorkspace(): React.ReactElement {
           </ul>
         </aside>
       </div>
+
+      <section className="agent-hub-card agent-hub-prompt-card">
+        <div className="agent-hub-prompt-heading">
+          <div>
+            <span className="agent-hub-card-kicker">Agent 行为</span>
+            <h2>自定义总结指令</h2>
+            <p>只调整总结的重点、结构、篇幅和表达方式，不会改变工具权限。</p>
+          </div>
+          <span className="agent-hub-prompt-guard">只读规则始终生效</span>
+        </div>
+        <div className="agent-hub-prompt-guardrail">
+          内置安全 Prompt 不可编辑：Agent 仍只能读取群聊，不能删除、修改、群发或主动发送消息。
+        </div>
+        <label className="agent-hub-prompt-field" htmlFor="agent-hub-custom-instructions">
+          <span>附加指令</span>
+          <Textarea
+            id="agent-hub-custom-instructions"
+            value={customInstructions}
+            maxLength={promptMaxLength}
+            onChange={(event) => {
+              setCustomInstructions(event.target.value)
+              setPromptNotice(null)
+            }}
+            placeholder="例如：总结时先给出三行摘要，再按主要话题、决定、待办和未解决问题分段；重要结论注明发言人与时间。"
+          />
+        </label>
+        <div className="agent-hub-prompt-footer">
+          <div>
+            <span>
+              {customInstructions.length} / {promptMaxLength}
+            </span>
+            {promptNotice ? (
+              <strong className={promptNotice.kind}>{promptNotice.text}</strong>
+            ) : null}
+          </div>
+          <div className="agent-hub-prompt-actions">
+            <Button
+              variant="outline"
+              disabled={promptBusy || (!customInstructions && !savedCustomInstructions)}
+              onClick={() => void savePrompt('')}
+            >
+              恢复默认
+            </Button>
+            <Button
+              disabled={
+                promptBusy ||
+                customInstructions.trim() === savedCustomInstructions ||
+                customInstructions.length > promptMaxLength
+              }
+              onClick={() => void savePrompt()}
+            >
+              {promptBusy ? '保存中…' : '保存指令'}
+            </Button>
+          </div>
+        </div>
+      </section>
 
       <section className="agent-hub-card agent-hub-log-card">
         <div className="agent-hub-log-heading">

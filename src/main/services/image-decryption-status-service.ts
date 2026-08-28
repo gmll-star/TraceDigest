@@ -28,7 +28,7 @@ export async function inspectImageDecryptionStatus(
   const imageDirectoryFound = hasImageDirectory(accountRoot)
   const stickerCacheFound =
     fs.existsSync(path.join(accountRoot, 'cache')) ||
-    fs.existsSync(path.join(os.homedir(), 'Documents', 'TraceMemo', 'Emojis')) ||
+    fs.existsSync(path.join(os.homedir(), 'Documents', 'TraceDigest', 'Emojis')) ||
     fs.existsSync(path.join(os.homedir(), 'Documents', 'WechatExplorer', 'Emojis'))
   const dbConnected = chat.isReady()
   const [wechatRunning, decoder] = await Promise.all([

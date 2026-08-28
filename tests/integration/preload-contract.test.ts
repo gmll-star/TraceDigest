@@ -67,6 +67,11 @@ describe('preload IPC contract', () => {
     await api.getAIVisionRuntimeConfig()
     expect(invoke).toHaveBeenLastCalledWith('ai:getVisionRuntimeConfig')
 
+    await api.getAgentHubPromptSettings()
+    expect(invoke).toHaveBeenLastCalledWith('agent-hub:getPromptSettings')
+    await api.saveAgentHubPromptSettings('先给出三行摘要')
+    expect(invoke).toHaveBeenLastCalledWith('agent-hub:savePromptSettings', '先给出三行摘要')
+
     await api.getImage('fixture-md5', 'fixture.dat', 'fixture-session', {
       force: true,
       priority: 0

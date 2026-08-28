@@ -3,16 +3,15 @@ import { Button, Dialog, DialogContent, DialogDescription, DialogTitle } from '.
 
 interface FirstUseWelcomeProps {
   onDismiss: () => void
-  onOpenSearch: () => void
   onOpenReport: () => void
   onOpenAISettings: () => void
 }
 
-const GUIDE_URL = 'https://github.com/Wxw-Gu/TraceMemo/blob/main/docs/user-guide/getting-started.md'
+const GUIDE_URL =
+  'https://github.com/gmll-star/TraceDigest/blob/main/docs/user-guide/getting-started.md'
 
 export function FirstUseWelcome({
   onDismiss,
-  onOpenSearch,
   onOpenReport,
   onOpenAISettings
 }: FirstUseWelcomeProps): React.ReactElement {
@@ -70,9 +69,6 @@ export function FirstUseWelcome({
         <div className="mt-3 flex flex-wrap gap-2">
           <Button variant="ghost" size="sm" onClick={dismiss}>
             查看聊天记录
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onOpenSearch}>
-            问问你的微信
           </Button>
         </div>
 

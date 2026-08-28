@@ -3,8 +3,8 @@ import path from 'path'
 
 export const LEGACY_USER_DATA_NAME = 'WechatExplorer'
 export const LEGACY_PACKAGE_USER_DATA_NAME = 'wechatexplorer'
-export const CURRENT_USER_DATA_NAME = 'TraceMemo'
-export const TRACE_MEMO_RUNTIME_NAME = 'TraceMemo'
+export const CURRENT_USER_DATA_NAME = 'TraceDigest'
+export const TRACE_MEMO_RUNTIME_NAME = 'TraceDigest'
 
 export interface UserDataRoots {
   legacy: string

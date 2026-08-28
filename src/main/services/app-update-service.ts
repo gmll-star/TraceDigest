@@ -8,7 +8,7 @@ import type {
   AppUpdateOpenDownloadPageResult,
   AppUpdateState
 } from '../../shared/app-update'
-import { APP_UPDATE_RELEASES_URL } from '../../shared/app-update'
+import { APP_UPDATES_ENABLED, APP_UPDATE_RELEASES_URL } from '../../shared/app-update'
 import { isPackagedRuntime } from '../runtime-mode'
 
 const SIMULATION_VERSION = '2.0.0'
@@ -26,6 +26,7 @@ interface AppUpdateServiceOptions {
   simulationDurationMs?: number
   platform?: NodeJS.Platform
   macAutoUpdateEnabled?: boolean
+  updatesEnabled?: boolean
   broadcast?: (state: AppUpdateState) => void
 }
 
@@ -34,6 +35,7 @@ export class AppUpdateService {
   private readonly packagedRuntime: () => boolean
   private readonly simulationEnabled: boolean
   private readonly simulationDurationMs: number
+  private readonly updatesEnabled: boolean
   private readonly delivery: AppUpdateDelivery
   private readonly broadcast?: (state: AppUpdateState) => void
   private state: AppUpdateState
@@ -57,15 +59,21 @@ export class AppUpdateService {
       : DEFAULT_SIMULATION_DURATION_MS
     const platform = options.platform || process.platform
     const macAutoUpdateEnabled = options.macAutoUpdateEnabled ?? MAC_AUTO_UPDATE_ENABLED
+    this.updatesEnabled = options.updatesEnabled ?? true
     this.delivery =
-      !this.simulationEnabled && platform === 'darwin' && !macAutoUpdateEnabled
+      !this.updatesEnabled
+        ? 'disabled'
+        : !this.simulationEnabled && platform === 'darwin' && !macAutoUpdateEnabled
         ? 'release-page'
         : 'automatic'
     this.broadcast = options.broadcast
     this.state = {
-      status: 'idle',
+      status: this.updatesEnabled ? 'idle' : 'unsupported',
       currentVersion: this.currentVersion(),
       delivery: this.delivery,
+      message: this.updatesEnabled
+        ? undefined
+        : '自动更新已关闭，请前往 GitHub Releases 手动下载新版本。',
       isSimulation: this.simulationEnabled
     }
 
@@ -135,6 +143,7 @@ export class AppUpdateService {
   }
 
   scheduleStartupCheck(delayMs = STARTUP_CHECK_DELAY_MS): void {
+    if (!this.updatesEnabled) return
     if (this.startupCheckScheduled) return
     if (!this.simulationEnabled && !this.packagedRuntime()) return
     this.startupCheckScheduled = true
@@ -151,6 +160,15 @@ export class AppUpdateService {
 
   private async runCheck(source: AppUpdateCheckSource): Promise<AppUpdateCheckResult> {
     this.activeCheckSource = source
+    if (!this.updatesEnabled) {
+      const state = this.setState({
+        status: 'unsupported',
+        source,
+        message: '自动更新已关闭，请前往 GitHub Releases 手动下载新版本。',
+        error: undefined
+      })
+      return { success: false, state }
+    }
     if (this.simulationEnabled) {
       this.setState({
         status: 'checking',
@@ -206,6 +224,14 @@ export class AppUpdateService {
   }
 
   private async runDownload(): Promise<AppUpdateCheckResult> {
+    if (!this.updatesEnabled) {
+      const state = this.setState({
+        status: 'unsupported',
+        message: '自动下载已关闭，请前往 GitHub Releases 手动下载新版本。',
+        error: undefined
+      })
+      return { success: false, state }
+    }
     if (this.simulationEnabled) return this.simulateDownload()
 
     if (this.delivery === 'release-page') {
@@ -239,6 +265,9 @@ export class AppUpdateService {
   }
 
   install(): AppUpdateInstallResult {
+    if (!this.updatesEnabled) {
+      return { success: false, error: '自动安装已关闭，请前往 GitHub Releases 手动下载。' }
+    }
     if (this.delivery !== 'automatic') {
       return { success: false, error: '当前 macOS 版本不支持自动安装，请前往 GitHub 下载更新。' }
     }
@@ -328,4 +357,4 @@ export class AppUpdateService {
   }
 }
 
-export const appUpdateService = new AppUpdateService()
+export const appUpdateService = new AppUpdateService({ updatesEnabled: APP_UPDATES_ENABLED })

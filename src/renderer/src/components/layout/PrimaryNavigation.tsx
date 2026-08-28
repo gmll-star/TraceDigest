@@ -21,13 +21,6 @@ function NavIcon({ page }: NavIconProps): React.ReactElement {
           <path d="M8 15.5h5" />
         </svg>
       )
-    case 'search':
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <circle cx="10.5" cy="10.5" r="5.5" />
-          <path d="m15 15 4 4" />
-        </svg>
-      )
     case 'report':
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -53,14 +46,6 @@ function NavIcon({ page }: NavIconProps): React.ReactElement {
           <circle cx="9.5" cy="12" r="1" />
           <circle cx="14.5" cy="12" r="1" />
           <path d="M9.5 15h5" />
-        </svg>
-      )
-    case 'api':
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M8 8.5 4.5 12 8 15.5" />
-          <path d="m16 8.5 3.5 3.5-3.5 3.5" />
-          <path d="m13.5 6.5-3 11" />
         </svg>
       )
     case 'settings':

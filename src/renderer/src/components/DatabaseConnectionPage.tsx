@@ -3,7 +3,8 @@ import type { DatabaseKeyEnvironment, WechatAccountCandidate } from '../../../sh
 import { WINDOWS_VC_RUNTIME_DOWNLOAD_URL } from '../../../shared/windows-runtime'
 import { Button, IconButton, Input, Tabs, TabsList, TabsTrigger } from './ui'
 
-const GUIDE_URL = 'https://github.com/Wxw-Gu/TraceMemo/blob/main/docs/user-guide/getting-started.md'
+const GUIDE_URL =
+  'https://github.com/gmll-star/TraceDigest/blob/main/docs/user-guide/getting-started.md'
 
 export type DatabaseConnectionMode = 'automatic' | 'manual'
 export type DatabaseConnectionStatusKind = 'normal' | 'success' | 'error'
@@ -141,12 +142,12 @@ export function DatabaseConnectionPage({
 
   return (
     <main className="database-login-page">
-      <section className="database-login-brand" aria-label="TraceMemo（迹忆）产品说明">
+      <section className="database-login-brand" aria-label="TraceDigest 产品说明">
         <div className="database-login-brand-content">
           <div className="database-login-logo" aria-hidden="true">
             <LineIcon name="database" />
           </div>
-          <h1>TraceMemo（迹忆）</h1>
+          <h1>TraceDigest</h1>
           <p className="database-login-tagline">让 AI 读懂你的微信</p>
           <p className="database-login-description">
             连接成功后，你可以搜索聊天记录、生成群聊日报，并按需使用 AI 分析。
@@ -561,7 +562,7 @@ export function DatabaseConnectionPage({
             <Button variant="destructive" size="sm" onClick={onClearKey}>
               清除已保存密钥
             </Button>
-            <span>TraceMemo</span>
+            <span>TraceDigest</span>
           </div>
         </div>
       </section>

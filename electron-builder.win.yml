@@ -1,5 +1,5 @@
-appId: com.tracememo.app
-productName: TraceMemo
+appId: io.github.gmll-star.tracedigest
+productName: TraceDigest
 afterPack: scripts/after-pack.cjs
 directories:
   buildResources: build
@@ -43,7 +43,10 @@ extraResources:
       - '**/*'
 win:
   icon: icon.ico
-  executableName: TraceMemo
+  executableName: TraceDigest
+  # The first public build is unsigned. Disabling executable resource editing
+  # avoids the Windows Developer Mode symlink requirement in winCodeSign.
+  signAndEditExecutable: false
   target:
     - target: nsis
       arch:
@@ -51,7 +54,7 @@ win:
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
-  artifactName: ${name}-${version}-setup.${ext}
+  artifactName: ${productName}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
@@ -61,6 +64,6 @@ electronLanguages:
   - en-US
 publish:
   provider: github
-  owner: Wxw-Gu
-  repo: TraceMemo
+  owner: gmll-star
+  repo: TraceDigest
   releaseType: release

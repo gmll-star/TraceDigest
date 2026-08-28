@@ -24,7 +24,12 @@ import type {
   ImageCandidateQuery,
   ImageInsight
 } from '../shared/image-insight'
-import type { AgentHubLogEntry, AgentHubStatus } from '../shared/agent-hub'
+import type {
+  AgentHubLogEntry,
+  AgentHubPromptSettings,
+  AgentHubPromptSettingsResult,
+  AgentHubStatus
+} from '../shared/agent-hub'
 import type {
   PersonalWechatImageSelectionResult,
   PersonalWechatVoiceSelectionResult,
@@ -384,6 +389,10 @@ const api = {
   getAgentHubStatus: () => ipcRenderer.invoke('agent-hub:getStatus'),
   getAgentHubLogs: () => ipcRenderer.invoke('agent-hub:getLogs'),
   clearAgentHubLogs: () => ipcRenderer.invoke('agent-hub:clearLogs'),
+  getAgentHubPromptSettings: (): Promise<AgentHubPromptSettings> =>
+    ipcRenderer.invoke('agent-hub:getPromptSettings'),
+  saveAgentHubPromptSettings: (customInstructions: string): Promise<AgentHubPromptSettingsResult> =>
+    ipcRenderer.invoke('agent-hub:savePromptSettings', customInstructions),
   startAgentHubLogin: () => ipcRenderer.invoke('agent-hub:startLogin'),
   cancelAgentHubLogin: () => ipcRenderer.invoke('agent-hub:cancelLogin'),
   reconnectAgentHub: () => ipcRenderer.invoke('agent-hub:reconnect'),

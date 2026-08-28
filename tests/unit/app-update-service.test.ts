@@ -179,4 +179,26 @@ describe('AppUpdateService', () => {
     expect(service.install()).toEqual({ success: true })
     expect(mocks.updater.quitAndInstall).toHaveBeenCalledOnce()
   })
+
+  it('does not contact the updater when updates are disabled', async () => {
+    const service = new AppUpdateService({
+      updatesEnabled: false,
+      packagedRuntime: () => true,
+      platform: 'win32'
+    })
+
+    service.scheduleStartupCheck(0)
+    const check = await service.check('manual')
+    const download = await service.download()
+
+    expect(check).toMatchObject({
+      success: false,
+      state: { status: 'unsupported', delivery: 'disabled' }
+    })
+    expect(download.success).toBe(false)
+    expect(service.install()).toMatchObject({ success: false })
+    expect(mocks.updater.checkForUpdates).not.toHaveBeenCalled()
+    expect(mocks.updater.downloadUpdate).not.toHaveBeenCalled()
+    expect(mocks.updater.quitAndInstall).not.toHaveBeenCalled()
+  })
 })

@@ -1172,6 +1172,83 @@
 .agent-hub-capability-card li i.offline {
   background: var(--wxex-danger);
 }
+.agent-hub-prompt-card {
+  max-width: 1080px;
+  margin: 16px auto 0;
+  padding: 20px 22px;
+}
+.agent-hub-prompt-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.agent-hub-prompt-heading h2 {
+  margin-bottom: 4px;
+}
+.agent-hub-prompt-guard {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: color-mix(in srgb, var(--wxex-success) 12%, var(--wxex-bg-elevated));
+  color: var(--wxex-success);
+  font-size: 11px;
+  font-weight: 700;
+}
+.agent-hub-prompt-guardrail {
+  margin: 16px 0;
+  border-left: 3px solid var(--wxex-brand);
+  border-radius: var(--wxex-radius-sm);
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--wxex-brand) 8%, var(--wxex-bg-main));
+  color: var(--wxex-text-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+.agent-hub-prompt-field {
+  display: grid;
+  gap: 7px;
+}
+.agent-hub-prompt-field > span {
+  color: var(--wxex-text-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+.agent-hub-prompt-field textarea {
+  min-height: 132px;
+  resize: vertical;
+  line-height: 1.6;
+}
+.agent-hub-prompt-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+}
+.agent-hub-prompt-footer > div:first-child {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  color: var(--wxex-text-muted);
+  font-size: 11px;
+}
+.agent-hub-prompt-footer strong {
+  overflow: hidden;
+  color: var(--wxex-success);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.agent-hub-prompt-footer strong.error {
+  color: var(--wxex-danger);
+}
+.agent-hub-prompt-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
 .agent-hub-log-card {
   max-width: 1080px;
   margin: 16px auto 0;
@@ -1255,6 +1332,17 @@
   }
   .agent-hub-grid {
     grid-template-columns: 1fr;
+  }
+  .agent-hub-prompt-heading,
+  .agent-hub-prompt-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .agent-hub-prompt-guard {
+    align-self: flex-start;
+  }
+  .agent-hub-prompt-actions {
+    justify-content: flex-end;
   }
   .agent-hub-qr-panel {
     flex-direction: column;

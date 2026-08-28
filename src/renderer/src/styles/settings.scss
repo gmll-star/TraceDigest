@@ -1388,9 +1388,10 @@
   gap: 12px;
 }
 .ai-provider-card {
-  border: 1px solid #dde3e0;
+  border: 1px solid var(--wxex-border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--wxex-bg-elevated);
+  color: var(--wxex-text-primary);
   padding: 19px 20px;
 }
 .ai-provider-card header {
@@ -1401,25 +1402,26 @@
 }
 .ai-provider-card h3 {
   margin: 0 0 5px;
-  color: #202724;
+  color: var(--wxex-text-primary);
   font-size: 15px;
 }
 .ai-provider-card header span {
-  color: #66706b;
+  color: var(--wxex-text-secondary);
   font-size: 12px;
 }
 .ai-provider-status {
   border-radius: 12px;
   padding: 4px 8px;
-  background: #f1f3f2;
+  background: color-mix(in srgb, var(--wxex-text-muted) 14%, var(--wxex-bg-elevated));
+  color: var(--wxex-text-secondary) !important;
 }
 .ai-provider-status.connected {
-  background: #eaf5f1;
-  color: #2e8b68 !important;
+  background: color-mix(in srgb, var(--wxex-success) 14%, var(--wxex-bg-elevated));
+  color: var(--wxex-success) !important;
 }
 .ai-provider-status.error {
-  background: #fff2f2;
-  color: #c85a5a !important;
+  background: color-mix(in srgb, var(--wxex-danger) 14%, var(--wxex-bg-elevated));
+  color: var(--wxex-danger) !important;
 }
 .ai-provider-card dl {
   display: grid;
@@ -1428,13 +1430,13 @@
   margin: 18px 0;
 }
 .ai-provider-card dt {
-  color: #929a96;
+  color: var(--wxex-text-muted);
   font-size: 11px;
 }
 .ai-provider-card dd {
   overflow: hidden;
   margin: 5px 0 0;
-  color: #3d4742;
+  color: var(--wxex-text-primary);
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 12px;
@@ -1444,11 +1446,11 @@
   flex-wrap: wrap;
   gap: 8px;
   padding-top: 14px;
-  border-top: 1px solid #edf0ee;
+  border-top: 1px solid var(--wxex-border);
 }
 .ai-provider-error {
   margin: 0 0 12px;
-  color: #a84444;
+  color: var(--wxex-danger) !important;
   font-size: 12px;
 }
 .ai-provider-empty {

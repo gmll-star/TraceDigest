@@ -9,8 +9,8 @@ export const LEGACY_MIGRATION_RESULT_FD_ENV = 'TRACEMEMO_LEGACY_MIGRATION_RESULT
 
 // This module must remain the first main-process import. Static imports in
 // settings/cache services can otherwise resolve Electron paths before the
-// TraceMemo userData is installed before any consumers. The migration helper
-// temporarily uses the legacy identity; normal Windows builds use TraceMemo.
+// TraceDigest userData is installed before any consumers. The migration helper
+// temporarily uses the legacy identity; normal Windows builds use TraceDigest.
 const isLegacyMigrationHelper = process.env[LEGACY_MIGRATION_HELPER_ENV] === '1'
 const legacyRuntimeName = LEGACY_USER_DATA_NAME
 const runtimeName =
@@ -30,13 +30,13 @@ const selectedUserData = isLegacyMigrationHelper
 app.setPath('userData', selectedUserData)
 app.setPath('sessionData', selectedUserData)
 
-// Logs are intentionally independent from userData. New TraceMemo logs go to
+// Logs are intentionally independent from userData. New TraceDigest logs go to
 // the new visible directory while historical WechatExplorer logs remain in
 // place and are never moved or renamed.
 if (isLegacyMigrationHelper) {
   app.setPath('logs', path.join(selectedUserData, 'logs'))
 } else if (process.platform === 'darwin') {
-  app.setPath('logs', path.join(app.getPath('home'), 'Library', 'Logs', 'TraceMemo'))
+  app.setPath('logs', path.join(app.getPath('home'), 'Library', 'Logs', 'TraceDigest'))
 } else if (process.platform === 'win32') {
   app.setPath('logs', path.join(selectedUserData, 'logs'))
 }

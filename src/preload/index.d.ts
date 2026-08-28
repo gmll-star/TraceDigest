@@ -52,7 +52,13 @@ import type {
   ImageCandidateQuery,
   ImageInsight
 } from '../shared/image-insight'
-import type { AgentHubActionResult, AgentHubLogEntry, AgentHubStatus } from '../shared/agent-hub'
+import type {
+  AgentHubActionResult,
+  AgentHubLogEntry,
+  AgentHubPromptSettings,
+  AgentHubPromptSettingsResult,
+  AgentHubStatus
+} from '../shared/agent-hub'
 import type {
   PersonalWechatImageSelectionResult,
   PersonalWechatVoiceSelectionResult,
@@ -598,6 +604,10 @@ declare global {
       getAgentHubStatus: () => Promise<AgentHubStatus>
       getAgentHubLogs: () => Promise<AgentHubLogEntry[]>
       clearAgentHubLogs: () => Promise<void>
+      getAgentHubPromptSettings: () => Promise<AgentHubPromptSettings>
+      saveAgentHubPromptSettings: (
+        customInstructions: string
+      ) => Promise<AgentHubPromptSettingsResult>
       startAgentHubLogin: () => Promise<AgentHubActionResult>
       cancelAgentHubLogin: () => Promise<AgentHubActionResult>
       reconnectAgentHub: () => Promise<AgentHubActionResult>

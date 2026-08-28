@@ -27,6 +27,14 @@ describe('Agent Hub controls', () => {
           message: '等待连接'
         }
       ]),
+      getAgentHubPromptSettings: vi.fn().mockResolvedValue({
+        customInstructions: '',
+        maxLength: 4000
+      }),
+      saveAgentHubPromptSettings: vi.fn(async (customInstructions: string) => ({
+        success: true,
+        settings: { customInstructions: customInstructions.trim(), maxLength: 4000 }
+      })),
       onAgentHubStatus: vi.fn(() => () => undefined),
       onAgentHubLog: vi.fn(() => () => undefined),
       copyText: vi.fn().mockResolvedValue(undefined),
@@ -65,15 +73,16 @@ describe('Agent Hub controls', () => {
 
     expect(screen.getByText('已启用能力')).toBeInTheDocument()
     expect(screen.getByText('微信数据助手')).toBeInTheDocument()
-    expect(screen.getByText('支持自然语言，可以这样问')).toBeInTheDocument()
-    expect(screen.getByText('“最近 5 条消息是谁？”')).toBeInTheDocument()
-    expect(screen.getByText('“帮我看看最近跟xx聊了些什么”')).toBeInTheDocument()
-    expect(screen.getByText('“生成产品交流群今天的群聊总结图片”')).toBeInTheDocument()
+    expect(screen.getByText('支持自然语言总结，可以这样问')).toBeInTheDocument()
+    expect(screen.getByText('“总结产品交流群最近 100 条消息”')).toBeInTheDocument()
+    expect(screen.getByText('“总结产品交流群今天下午的消息”')).toBeInTheDocument()
+    expect(screen.getByText('“总结技术群里张三最近的发言”')).toBeInTheDocument()
+    expect(screen.getByText('不提供删除、修改、群发或主动发送工具')).toBeInTheDocument()
     expect(
       document.querySelectorAll(
         '.agent-hub-capability-card li:not(.agent-hub-capability-status) > i'
       )
-    ).toHaveLength(4)
+    ).toHaveLength(5)
   })
 
   it('keeps reconnect and destructive disconnect actions separate', async () => {
@@ -91,5 +100,23 @@ describe('Agent Hub controls', () => {
       await Promise.resolve()
     })
     expect(window.api.disconnectAgentHub).toHaveBeenCalledOnce()
+  })
+
+  it('saves and resets custom summary instructions without changing safety rules', async () => {
+    const user = userEvent.setup()
+    render(<AgentHubWorkspace />)
+    const prompt = await screen.findByRole('textbox', { name: '附加指令' })
+
+    expect(screen.getByText('只读规则始终生效')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '保存指令' })).toBeDisabled()
+
+    await user.type(prompt, '先给出三行摘要，再列出待办。')
+    await user.click(screen.getByRole('button', { name: '保存指令' }))
+    expect(window.api.saveAgentHubPromptSettings).toHaveBeenLastCalledWith(
+      '先给出三行摘要，再列出待办。'
+    )
+
+    await user.click(screen.getByRole('button', { name: '恢复默认' }))
+    expect(window.api.saveAgentHubPromptSettings).toHaveBeenLastCalledWith('')
   })
 })

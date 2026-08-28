@@ -44,7 +44,7 @@ const exportStamp = (): string => {
   const pad = (value: number): string => String(value).padStart(2, '0')
   return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`
 }
-const defaultExportRoot = (): string => join(app.getPath('documents'), 'TraceMemo', '导出')
+const defaultExportRoot = (): string => join(app.getPath('documents'), 'TraceDigest', '导出')
 const legacyExportRoot = (): string => join(app.getPath('documents'), 'WechatExplorer', '导出')
 const resolveDefaultExportRoot = async (outputFolder?: string): Promise<string> => {
   if (!outputFolder) return defaultExportRoot()

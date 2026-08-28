@@ -22,7 +22,7 @@ export class StickerService {
   private readonly legacyCacheDir: string
 
   constructor(private readonly wcdb4Client?: Wcdb4Client | null) {
-    this.cacheDir = path.join(os.homedir(), 'Documents', 'TraceMemo', 'Emojis')
+    this.cacheDir = path.join(os.homedir(), 'Documents', 'TraceDigest', 'Emojis')
     // Keep reading the former directory so existing sticker caches remain usable.
     this.legacyCacheDir = path.join(os.homedir(), 'Documents', 'WechatExplorer', 'Emojis')
   }

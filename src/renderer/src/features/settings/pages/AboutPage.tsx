@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Button, Progress } from '../../../components/ui'
 import { useAppUpdateState } from '../../app-update/useAppUpdateState'
 
-const REPOSITORY_URL = 'https://github.com/Wxw-Gu/TraceMemo'
+const REPOSITORY_URL = 'https://github.com/gmll-star/TraceDigest'
 const RELEASES_URL = `${REPOSITORY_URL}/releases`
 
 function formatDataSize(value?: number): string {
@@ -21,6 +21,7 @@ export function AboutPage({
   const [busy, setBusy] = useState(false)
 
   const action = useMemo(() => {
+    if (update.delivery === 'disabled') return '前往 Releases'
     if (update.status === 'available') {
       return update.delivery === 'release-page' ? '前往下载' : '下载更新'
     }
@@ -35,7 +36,8 @@ export function AboutPage({
     setBusy(true)
     try {
       const result =
-        update.status === 'available' && update.delivery === 'release-page'
+        update.delivery === 'disabled' ||
+        (update.status === 'available' && update.delivery === 'release-page')
           ? await window.api.openAppUpdateDownloadPage()
           : update.status === 'available'
             ? await window.api.downloadAppUpdate()
@@ -65,7 +67,7 @@ export function AboutPage({
       <header className="settings-page-header">
         <div>
           <h1>关于</h1>
-          <p>TraceMemo（迹忆）本地优先、可追溯的 AI 微信知识与分析工作台。</p>
+          <p>TraceDigest，本地优先、只读的 AI 微信聊天总结工具。</p>
         </div>
       </header>
       <div className="settings-page-scroll">
@@ -73,7 +75,7 @@ export function AboutPage({
           <section className="settings-card about-identity-card">
             <div>
               <span className="settings-card-kicker">当前版本</span>
-              <strong>TraceMemo（迹忆）</strong>
+              <strong>TraceDigest</strong>
               <small>v{update.currentVersion}</small>
             </div>
             <a href={REPOSITORY_URL} target="_blank" rel="noreferrer">
@@ -93,7 +95,9 @@ export function AboutPage({
                       ? `发现新版本 v${update.version}`
                       : update.message || '检查 GitHub Releases 获取最新版本'}
               </strong>
-              {update.status === 'downloading' ? (
+              {update.delivery === 'disabled' ? (
+                <span>当前版本关闭了自动检查、自动下载和自动安装，请在 Releases 手动获取新版。</span>
+              ) : update.status === 'downloading' ? (
                 <div className="grid gap-2 pt-1">
                   <span className="text-sm font-semibold text-foreground">{percent}%</span>
                   <Progress value={percent} aria-label={`更新下载进度 ${percent}%`} />

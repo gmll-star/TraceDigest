@@ -1,5 +1,5 @@
 provider: github
-owner: Wxw-Gu
-repo: TraceMemo
+owner: gmll-star
+repo: TraceDigest
 releaseType: release
-updaterCacheDirName: tracememo-updater
+updaterCacheDirName: tracedigest-updater

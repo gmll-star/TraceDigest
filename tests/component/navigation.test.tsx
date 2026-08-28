@@ -14,6 +14,8 @@ describe('PrimaryNavigation', () => {
     for (const item of PRIMARY_NAV_ITEMS) {
       expect(screen.getAllByRole('button', { name: item.label })).toHaveLength(1)
     }
+    expect(screen.queryByRole('button', { name: '问问微信' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'API' })).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: '设置' }))
     expect(onPageChange).toHaveBeenCalledWith('settings')

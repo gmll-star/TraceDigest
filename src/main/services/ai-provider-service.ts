@@ -7,6 +7,9 @@ import type {
   AIProviderConfig,
   AIProviderListResult,
   AIProviderSummary,
+  AIToolChatMessage,
+  AIToolChatResult,
+  AIToolDefinition,
   AiSearchProviderStatus,
   AIRuntimeModelConfig,
   AIVisionRuntimeConfig,
@@ -31,7 +34,17 @@ type AIRequestResult = {
 }
 interface OpenAIResponsePayload {
   error?: { message?: string }
-  choices?: Array<{ message?: { content?: string }; finish_reason?: string }>
+  choices?: Array<{
+    message?: {
+      content?: string | null
+      tool_calls?: Array<{
+        id?: string
+        type?: string
+        function?: { name?: string; arguments?: string }
+      }>
+    }
+    finish_reason?: string
+  }>
   usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }
 }
 interface AnthropicResponsePayload {
@@ -243,6 +256,40 @@ export class AIProviderService {
   }> {
     try {
       return { success: true, ...(await this.request(messages, options, false, signal)) }
+    } catch (error) {
+      if (signal?.aborted) throw error
+      return { success: false, error: safeAIError(error) }
+    }
+  }
+
+  async chatWithTools(
+    messages: AIToolChatMessage[],
+    tools: AIToolDefinition[],
+    options?: AIChatRequestOptions,
+    signal?: AbortSignal
+  ): Promise<AIToolChatResult> {
+    try {
+      const resolved = this.resolveProvider(options)
+      if (resolved.provider.type === 'anthropic-messages') {
+        throw new Error('Agent Hub 只读工具暂时需要 OpenAI Compatible 类型的 Provider')
+      }
+      const provider = options?.timeoutMs
+        ? {
+            ...resolved.provider,
+            advanced: { ...resolved.provider.advanced, timeoutMs: options.timeoutMs }
+          }
+        : resolved.provider
+      return {
+        success: true,
+        ...(await requestOpenAICompatibleWithTools(
+          provider,
+          resolved.key,
+          resolved.model,
+          messages,
+          tools,
+          signal
+        ))
+      }
     } catch (error) {
       if (signal?.aborted) throw error
       return { success: false, error: safeAIError(error) }
@@ -584,6 +631,29 @@ function toOpenAIMessages(messages: AIMessage[]): Array<{ role: string; content:
   }))
 }
 
+function toOpenAIToolMessages(messages: AIToolChatMessage[]): Array<Record<string, unknown>> {
+  return messages.map((message) => {
+    const result: Record<string, unknown> = {
+      role: message.role,
+      content: message.content
+    }
+    if (message.role === 'tool' && message.toolCallId) {
+      result['tool_call_id'] = message.toolCallId
+    }
+    if (message.role === 'assistant' && message.toolCalls?.length) {
+      result['tool_calls'] = message.toolCalls.map((call) => ({
+        id: call.id,
+        type: 'function',
+        function: {
+          name: call.function.name,
+          arguments: call.function.arguments
+        }
+      }))
+    }
+    return result
+  })
+}
+
 function toAnthropicMessages(messages: AIMessage[]): Array<{ role: string; content: unknown }> {
   return messages
     .filter((message) => message.role !== 'system')
@@ -644,6 +714,66 @@ async function requestOpenAICompatible(
   return {
     data: String(payload.choices?.[0]?.message?.content || ''),
     finishReason: String(payload.choices?.[0]?.finish_reason || 'unknown'),
+    usage: payload.usage
+      ? {
+          input: payload.usage.prompt_tokens,
+          output: payload.usage.completion_tokens,
+          total: payload.usage.total_tokens,
+          estimated: false
+        }
+      : undefined
+  }
+}
+
+async function requestOpenAICompatibleWithTools(
+  provider: AIProviderSummary,
+  apiKey: string,
+  model: string,
+  messages: AIToolChatMessage[],
+  tools: AIToolDefinition[],
+  signal?: AbortSignal
+): Promise<Omit<AIToolChatResult, 'success' | 'error'>> {
+  const endpoint = provider.baseUrl.endsWith('/chat/completions')
+    ? provider.baseUrl
+    : `${provider.baseUrl.replace(/\/+$/, '')}/chat/completions`
+  const configuredMaxTokens =
+    provider.models.find((item) => item.id === model)?.maxTokens ||
+    provider.advanced.maxTokens ||
+    4096
+  const response = await fetchWithTimeout(
+    endpoint,
+    {
+      method: 'POST',
+      headers: buildHeaders(provider, apiKey),
+      body: JSON.stringify({
+        model,
+        messages: toOpenAIToolMessages(messages),
+        tools,
+        tool_choice: 'auto',
+        temperature: provider.advanced.temperature,
+        max_tokens: configuredMaxTokens
+      })
+    },
+    provider.advanced.timeoutMs,
+    signal
+  )
+  const payload = await parseJsonResponse<OpenAIResponsePayload>(response)
+  if (!response.ok) throw new Error(payload.error?.message || `AI 请求失败 (${response.status})`)
+  const choice = payload.choices?.[0]
+  const toolCalls = (choice?.message?.tool_calls || [])
+    .filter((call) => call.function?.name)
+    .map((call, index) => ({
+      id: call.id || `tool_call_${index + 1}`,
+      type: 'function' as const,
+      function: {
+        name: String(call.function?.name || ''),
+        arguments: String(call.function?.arguments || '{}')
+      }
+    }))
+  return {
+    content: String(choice?.message?.content || ''),
+    toolCalls,
+    finishReason: String(choice?.finish_reason || 'unknown'),
     usage: payload.usage
       ? {
           input: payload.usage.prompt_tokens,

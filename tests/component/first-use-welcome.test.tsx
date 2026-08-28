@@ -18,7 +18,6 @@ describe('FirstUseWelcome', () => {
           {open && (
             <FirstUseWelcome
               onDismiss={() => setOpen(false)}
-              onOpenSearch={vi.fn()}
               onOpenReport={vi.fn()}
               onOpenAISettings={vi.fn()}
             />
@@ -44,13 +43,11 @@ describe('FirstUseWelcome', () => {
 
   it('keeps the feature callbacks and guide link intact', async () => {
     const user = userEvent.setup()
-    const onOpenSearch = vi.fn()
     const onOpenReport = vi.fn()
     const onOpenAISettings = vi.fn()
     render(
       <FirstUseWelcome
         onDismiss={vi.fn()}
-        onOpenSearch={onOpenSearch}
         onOpenReport={onOpenReport}
         onOpenAISettings={onOpenAISettings}
       />
@@ -58,13 +55,12 @@ describe('FirstUseWelcome', () => {
 
     await user.click(screen.getByRole('button', { name: /试试 AI 群聊日报/ }))
     expect(onOpenReport).toHaveBeenCalledOnce()
-    await user.click(screen.getByRole('button', { name: '问问你的微信' }))
-    expect(onOpenSearch).toHaveBeenCalledOnce()
+    expect(screen.queryByRole('button', { name: '问问你的微信' })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '配置 AI 模型' }))
     expect(onOpenAISettings).toHaveBeenCalledOnce()
     expect(screen.getByRole('link', { name: '查看完整使用教程' })).toHaveAttribute(
       'href',
-      'https://github.com/Wxw-Gu/TraceMemo/blob/main/docs/user-guide/getting-started.md'
+      'https://github.com/gmll-star/TraceDigest/blob/main/docs/user-guide/getting-started.md'
     )
   })
 })

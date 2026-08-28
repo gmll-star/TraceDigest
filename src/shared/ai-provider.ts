@@ -120,6 +120,40 @@ export interface AIChatRequestOptions {
   model?: string
 }
 
+export interface AIToolDefinition {
+  type: 'function'
+  function: {
+    name: string
+    description: string
+    parameters: Record<string, unknown>
+  }
+}
+
+export interface AIToolCall {
+  id: string
+  type: 'function'
+  function: {
+    name: string
+    arguments: string
+  }
+}
+
+export interface AIToolChatMessage {
+  role: 'system' | 'user' | 'assistant' | 'tool'
+  content: string | null
+  toolCallId?: string
+  toolCalls?: AIToolCall[]
+}
+
+export interface AIToolChatResult {
+  success: boolean
+  content?: string
+  toolCalls?: AIToolCall[]
+  finishReason?: string
+  usage?: { input?: number; output?: number; total?: number; estimated?: boolean }
+  error?: string
+}
+
 export interface AIConnectionTestResult {
   success: boolean
   error?: string

@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { Sidebar } from './components/Sidebar'
 import ChatWindow from './components/ChatWindow'
 import { AppShell } from './components/layout/AppShell'
-import { ApiWorkspace } from './features/api-center/ApiWorkspace'
 import { SettingsWorkspace } from './features/settings/SettingsWorkspace'
 import { AgentHubWorkspace } from './features/agent-hub/AgentHubWorkspace'
 import type { SettingsCategoryId } from './features/settings/model/types'
@@ -26,7 +25,6 @@ import { Contact, Message } from '../../shared/types'
 import { DatabaseConnectionMode, DatabaseConnectionPage } from './components/DatabaseConnectionPage'
 import { FirstUseWelcome } from './components/FirstUseWelcome'
 import { ExportWorkspace } from './components/export/ExportWorkspace'
-import { AISearchWorkspace } from './components/search/AISearchWorkspace'
 import type { ExportJobProgress, ExportRequest, ExportTaskRecord } from '../../shared/export'
 import type { DatabaseKeyEnvironment, WechatAccountCandidate } from '../../shared/database-key'
 import {
@@ -73,7 +71,8 @@ interface SelfInfo {
   accountRoot: string
 }
 
-const MAC_KEY_FAQ_URL = 'https://github.com/Wxw-Gu/TraceMemo/blob/main/docs/mac-disable-sip.md'
+const MAC_KEY_FAQ_URL =
+  'https://github.com/gmll-star/TraceDigest/blob/main/docs/mac-disable-sip.md'
 const FIRST_USE_WELCOME_SEEN_KEY = 'wxe_first_use_welcome_seen'
 const MESSAGE_MONITOR_DEBOUNCE_MS = 8000
 const INITIAL_MESSAGE_COUNT = 20
@@ -255,13 +254,6 @@ function App(): React.ReactElement {
   const [reportNotice, setReportNotice] = useState('')
   const [summaryDateRange, setSummaryDateRange] = useState<SummaryDateRange>('today')
   const [summaryMessageTypes, setSummaryMessageTypes] = useState<SummaryMessageType[]>(['text'])
-  const [aiModelConfig, setAiModelConfig] = useState<AiModelConfig>({
-    providerName: '尚未配置',
-    model: '',
-    modelName: '尚未选择模型',
-    configured: false,
-    status: 'untested'
-  })
   const [reportTextModelConfig, setReportTextModelConfig] = useState<AiModelConfig>({
     providerName: '尚未配置',
     model: '',
@@ -415,7 +407,6 @@ function App(): React.ReactElement {
         )
         setReportTextModelOptions(textChoices)
         setReportVisionModelOptions(visionChoices)
-        setAiModelConfig(runtime)
         setReportTextModelConfig(selectedText || runtime)
         setAiVisionModelConfig(selectedVision)
       } catch (error) {
@@ -889,7 +880,7 @@ function App(): React.ReactElement {
         })
         setStartupProgress({
           title: '正在加载账号信息...',
-          subtitle: '即将进入 TraceMemo',
+          subtitle: '即将进入 TraceDigest',
           detail: '正在读取联系人和当前账号',
           percent: 70
         })
@@ -1259,26 +1250,6 @@ function App(): React.ReactElement {
     }
   }
 
-  const handleOpenSearchEvidence = async (contact: Contact, createTime?: number): Promise<void> => {
-    setActivePage('archive')
-    await handleSelectContact(contact)
-    if (!createTime || selectedContactMd5Ref.current !== contact.md5) return
-
-    try {
-      const windowStart = Math.max(0, createTime - 12 * 3600)
-      const windowEnd = createTime + 12 * 3600
-      const nearbyMessages = await window.api.getMessages(contact.md5, windowStart, windowEnd)
-      if (selectedContactMd5Ref.current !== contact.md5) return
-      const focusedMessages = sortMessagesChronologically(nearbyMessages)
-      messageHistoryRef.current = focusedMessages
-      setMessages(applyGroupMemberMeta(contact, mergeSyntheticMessages(contact, focusedMessages)))
-      setArchiveJumpTime(createTime)
-    } catch (error) {
-      console.warn('[Search] evidence context load failed:', error)
-      setReportNotice('证据所在时间段加载失败，请在档案中手动查看')
-    }
-  }
-
   React.useEffect(() => {
     if (!isDatabaseConnected || !selectedContact) return
     void handleSelectContact(selectedContact)
@@ -1500,11 +1471,6 @@ function App(): React.ReactElement {
       // If localStorage is unavailable, still show the one-time prompt for this session.
     }
     setShowFirstUseWelcome(true)
-  }
-
-  const openFirstUseSearch = (): void => {
-    dismissFirstUseWelcome()
-    setActivePage('search')
   }
 
   const openFirstUseReport = (): void => {
@@ -1856,14 +1822,6 @@ function App(): React.ReactElement {
         return renderReportWorkspace()
       case 'agent-hub':
         return <AgentHubWorkspace />
-      case 'api':
-        return (
-          <ApiWorkspace
-            selectedContact={selectedContact}
-            dbReady={isDatabaseConnected}
-            onOpenSettings={openSettings}
-          />
-        )
       case 'settings':
         return (
           <SettingsWorkspace
@@ -1880,7 +1838,6 @@ function App(): React.ReactElement {
             onFilteredContactsChange={setFilteredContacts}
             onReturnToLogin={handleReturnToLogin}
             onAIRuntimeChange={(config: AIRuntimeModelConfig) => {
-              setAiModelConfig(config)
               void Promise.all([
                 window.api.getAIVisionRuntimeConfig(),
                 window.api.listAIProviders()
@@ -1913,21 +1870,6 @@ function App(): React.ReactElement {
             onOpenSettings={openSettings}
             onAppearanceChange={handleAppearanceChange}
             onSwitchAccount={handleSwitchAccount}
-          />
-        )
-      case 'search':
-        return (
-          <AISearchWorkspace
-            contacts={contacts}
-            selectedContact={selectedContact}
-            dbReady={isDatabaseConnected}
-            aiModelConfig={aiModelConfig}
-            onSelectContact={(contact) => void handleSelectContact(contact)}
-            onOpenEvidence={(contact, createTime) =>
-              void handleOpenSearchEvidence(contact, createTime)
-            }
-            onOpenAISettings={openModelSettings}
-            onNotice={setReportNotice}
           />
         )
       case 'export':
@@ -1996,7 +1938,7 @@ function App(): React.ReactElement {
         ? autoConnectSource === 'env'
           ? '检测到环境变量中的密钥'
           : '使用上次安全保存的密钥'
-        : 'TraceMemo')
+        : 'TraceDigest')
     return (
       <div className={`boot-splash ${appearanceSettings.showStartupProgress ? '' : 'is-quiet'}`}>
         <div className="boot-splash-spinner" aria-hidden />
@@ -2123,7 +2065,6 @@ function App(): React.ReactElement {
       {showFirstUseWelcome && (
         <FirstUseWelcome
           onDismiss={dismissFirstUseWelcome}
-          onOpenSearch={openFirstUseSearch}
           onOpenReport={openFirstUseReport}
           onOpenAISettings={openFirstUseAISettings}
         />

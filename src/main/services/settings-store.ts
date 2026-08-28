@@ -37,6 +37,7 @@ export interface AppSettings {
   appearanceTheme: 'system' | 'light' | 'dark'
   compactMode: boolean
   showStartupProgress: boolean
+  agentHubCustomInstructions: string
   ttsSelectedVoiceId: string
   ttsModel: TextToSpeechModel
 }
@@ -119,6 +120,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   appearanceTheme: 'system',
   compactMode: false,
   showStartupProgress: true,
+  agentHubCustomInstructions: '',
   ttsSelectedVoiceId: '',
   ttsModel: 's2.1-pro-free'
 }

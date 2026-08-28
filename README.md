@@ -1,24 +1,24 @@
-# TraceMemo（迹忆）
+# TraceDigest
 
 <p align="center">
-  <img src="./build/icon.png" width="120" alt="TraceMemo Logo" />
+  <img src="./build/icon.png" width="120" alt="TraceDigest Logo" />
 </p>
 
-<h2 align="center">把微信聊过的事，找回来、问清楚、留下来</h2>
+<h2 align="center">让只读 Agent 按你的要求总结微信聊天</h2>
 
 <p align="center">
-  本地优先的微信聊天记录工作台：查看、搜索、提问、总结和导出<br />
-  查看聊天 · 找回信息 · AI 问答 · 微信群聊总结 · 语音转写 · 导出 · 微信机器人 · Agent 接入
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/github/stars/Wxw-Gu/TraceMemo?style=for-the-badge" alt="GitHub stars" />
-  <img src="https://img.shields.io/github/downloads/Wxw-Gu/TraceMemo/total?style=for-the-badge" alt="GitHub downloads" />
-  <img src="https://img.shields.io/github/v/release/Wxw-Gu/TraceMemo?style=for-the-badge" alt="Latest release" />
+  基于 TraceMemo 二次开发的本地优先微信聊天总结工具<br />
+  只读消息访问 · 自然语言总结 · 自定义模型 · 微信机器人 · Agent 接入
 </p>
 
 <p align="center">
-  <a href="https://github.com/Wxw-Gu/TraceMemo/releases"><b>下载 TraceMemo</b></a>
+  <img src="https://img.shields.io/github/stars/gmll-star/TraceDigest?style=for-the-badge" alt="GitHub stars" />
+  <img src="https://img.shields.io/github/downloads/gmll-star/TraceDigest/total?style=for-the-badge" alt="GitHub downloads" />
+  <img src="https://img.shields.io/github/v/release/gmll-star/TraceDigest?style=for-the-badge" alt="Latest release" />
+</p>
+
+<p align="center">
+  <a href="https://github.com/gmll-star/TraceDigest/releases"><b>下载 TraceDigest</b></a>
   ·
   <a href="./docs/user-guide/getting-started.md"><b>第一次使用</b></a>
   ·
@@ -32,6 +32,14 @@
 <p align="center">
   <img src="./public/机器人.png" alt="TraceMemo 微信机器人" />
 </p>
+
+---
+
+## 二次开发说明
+
+TraceDigest 是 [TraceMemo](https://github.com/Wxw-Gu/TraceMemo) 的非商业二次开发版本，当前重点是让大模型通过受限的只读工具完成群聊总结。Agent 只能搜索群聊、匹配群成员和读取消息，不能删除、修改或主动发送微信消息。
+
+当前版本关闭自动更新。新版本需要由用户前往本仓库 Releases 手动下载安装。项目沿用上游仓库声明的非商业使用限制，并保留所有第三方组件的原有许可和声明，详情见 [NOTICE-TRACEDIGEST.md](./NOTICE-TRACEDIGEST.md)。
 
 ---
 
@@ -309,8 +317,8 @@ flowchart LR
 
 ## 快速开始
 
-1. 从 [GitHub Releases](https://github.com/Wxw-Gu/TraceMemo/releases) 下载安装包。
-2. 启动 TraceMemo，按照“第一次使用”页面选择微信数据目录。
+1. 从 [GitHub Releases](https://github.com/gmll-star/TraceDigest/releases) 下载安装包。
+2. 启动 TraceDigest，按照“第一次使用”页面选择微信数据目录。
 3. 第一次使用请先点击“开始连接”，按页面提示准备连接组件并获取数据库密钥；只有已经有密钥的高级用户才需要“手动连接”。
 4. 连接成功后打开“档案”，确认联系人和聊天消息已经出现。
 5. 先在“档案”里搜索一句你记得的原话；这一步不需要 AI。

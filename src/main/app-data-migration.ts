@@ -361,7 +361,7 @@ export function getAgentCredentialRoots(homePath = os.homedir()): {
 } {
   return {
     legacy: path.join(homePath, '.wechatexplorer', 'wechat-connector', 'accounts'),
-    current: path.join(homePath, '.tracememo', 'wechat-connector', 'accounts')
+    current: path.join(homePath, '.tracedigest', 'wechat-connector', 'accounts')
   }
 }
 
@@ -591,7 +591,7 @@ async function createMigrationProgressWindow(): Promise<BrowserWindow | null> {
 html,body{height:100%;margin:0}body{display:grid;place-items:center;background:#f5f5f7;color:#202124;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-align:center}
 main{width:360px}.spinner{width:30px;height:30px;margin:0 auto 20px;border:3px solid #d9dddf;border-top-color:#00796b;border-radius:50%;animation:spin .9s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
 h1{font-size:18px;margin:0 0 12px}p{line-height:1.6;margin:0}.hint{margin-top:14px;color:#697177;font-size:12px}
-</style></head><body><main><div class="spinner"></div><h1>正在迁移 WechatExplorer 数据</h1><p id="status">正在准备迁移…</p><p class="hint">请不要退出 TraceMemo。旧数据不会被删除。</p></main></body></html>`
+</style></head><body><main><div class="spinner"></div><h1>正在迁移 WechatExplorer 数据</h1><p id="status">正在准备迁移…</p><p class="hint">请不要退出 TraceDigest。旧数据不会被删除。</p></main></body></html>`
   await window.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
   window.setProgressBar(2, { mode: 'indeterminate' })
   window.show()

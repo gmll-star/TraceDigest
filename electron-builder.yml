@@ -1,5 +1,5 @@
-appId: com.tracememo.app
-productName: TraceMemo
+appId: io.github.gmll-star.tracedigest
+productName: TraceDigest
 afterPack: scripts/after-pack.cjs
 directories:
   buildResources: build
@@ -48,7 +48,7 @@ mac:
     - zip
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
-    CFBundleDisplayName: TraceMemo
+    CFBundleDisplayName: TraceDigest
     NSCameraUsageDescription: Application requests access to the device's camera.
     NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
@@ -69,6 +69,6 @@ appImage:
 npmRebuild: false
 publish:
   provider: github
-  owner: Wxw-Gu
-  repo: TraceMemo
+  owner: gmll-star
+  repo: TraceDigest
   releaseType: release

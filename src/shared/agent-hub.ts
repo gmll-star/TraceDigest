@@ -26,6 +26,19 @@ export interface AgentHubActionResult {
   error?: string
 }
 
+export const AGENT_HUB_CUSTOM_INSTRUCTIONS_MAX_LENGTH = 4000
+
+export interface AgentHubPromptSettings {
+  customInstructions: string
+  maxLength: number
+}
+
+export interface AgentHubPromptSettingsResult {
+  success: boolean
+  settings: AgentHubPromptSettings
+  error?: string
+}
+
 export type AgentHubLogSource = 'agent-hub' | 'wechat-connector' | 'system'
 export type AgentHubLogLevel = 'info' | 'warn' | 'error'
 

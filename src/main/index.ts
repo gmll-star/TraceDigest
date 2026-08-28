@@ -470,7 +470,7 @@ function createWindow(): void {
     void dialog
       .showMessageBox(mainWindow, {
         type: 'question',
-        title: '关闭 TraceMemo',
+        title: '关闭 TraceDigest',
         message: '请选择关闭方式',
         detail: '你可以将窗口隐藏到系统托盘，或退出整个应用进程。',
         buttons: ['最小化到系统托盘', '关闭进程', '取消'],
@@ -540,7 +540,7 @@ app.whenReady().then(async () => {
         scope: 'app-data-migration',
         message: migration.assessment.selection.legacyConflict
           ? '检测到两个独立的 legacy userData，已按兼容优先级选择 WechatExplorer 作为迁移源'
-          : 'TraceMemo 数据身份检查完成',
+          : 'TraceDigest 数据身份检查完成',
         details: {
           action: migration.action,
           reason: migration.assessment.reason,
@@ -570,15 +570,15 @@ app.whenReady().then(async () => {
     appLogger.write({
       level: 'error',
       scope: 'app-data-migration',
-      message: 'TraceMemo 数据迁移初始化失败',
+      message: 'TraceDigest 数据迁移初始化失败',
       details: { error: error instanceof Error ? error.message : String(error) }
     })
     await dialog.showMessageBox({
       type: 'warning',
-      title: 'TraceMemo 数据迁移',
+      title: 'TraceDigest 数据迁移',
       message: '旧数据迁移未能启动',
       detail:
-        '旧目录没有被修改或删除。请保留 WechatExplorer 数据并重新启动 TraceMemo；旧 API Token 不会被静默替换。',
+        '旧目录没有被修改或删除。请保留 WechatExplorer 数据并重新启动 TraceDigest；旧 API Token 不会被静默替换。',
       buttons: ['好']
     })
   }
@@ -624,11 +624,11 @@ app.whenReady().then(async () => {
       return new Response('Media unavailable', { status: 500 })
     }
   })
-  console.log(`TraceMemo main build: ${BUILD_MARK}`)
+  console.log(`TraceDigest main build: ${BUILD_MARK}`)
   appLogger.write({
     level: 'info',
     scope: 'lifecycle',
-    message: 'TraceMemo 启动',
+    message: 'TraceDigest 启动',
     details: { build: BUILD_MARK, platform: process.platform, version: app.getVersion() }
   })
   process.on('uncaughtException', (error) => {
@@ -665,7 +665,7 @@ app.whenReady().then(async () => {
   })
 
   // 设置应用程序用户模型 ID
-  electronApp.setAppUserModelId('com.tracememo.app')
+  electronApp.setAppUserModelId('io.github.gmll-star.tracedigest')
 
   if (process.platform === 'darwin') app.dock?.setIcon(appIconPath)
 
@@ -1772,6 +1772,10 @@ app.whenReady().then(async () => {
   ipcMain.handle('agent-hub:getStatus', () => agentHubService.getStatus())
   ipcMain.handle('agent-hub:getLogs', () => agentHubService.getLogs())
   ipcMain.handle('agent-hub:clearLogs', () => agentHubService.clearLogs())
+  ipcMain.handle('agent-hub:getPromptSettings', () => agentHubService.getPromptSettings())
+  ipcMain.handle('agent-hub:savePromptSettings', (_, customInstructions: unknown) =>
+    agentHubService.savePromptSettings(customInstructions)
+  )
   ipcMain.handle('agent-hub:startLogin', () => agentHubService.startLogin())
   ipcMain.handle('agent-hub:cancelLogin', () => agentHubService.cancelLogin())
   ipcMain.handle('agent-hub:reconnect', () => agentHubService.reconnect())
@@ -1939,7 +1943,7 @@ function buildTrayMenu(): Menu {
     },
     { type: 'separator' },
     {
-      label: '退出 TraceMemo',
+      label: '退出 TraceDigest',
       click: () => {
         tray?.destroy()
         tray = null
@@ -1958,7 +1962,7 @@ function setupTray(): void {
       ? nativeImage.createEmpty()
       : image.resize({ width: traySize, height: traySize, quality: 'best' })
     tray = new Tray(trayImage)
-    tray.setToolTip('TraceMemo')
+    tray.setToolTip('TraceDigest')
     // macOS may show a Tray context menu on a primary click when it is set
     // directly on the Tray. Keep the menu for an explicit secondary click so
     // the primary click only restores the main window.
