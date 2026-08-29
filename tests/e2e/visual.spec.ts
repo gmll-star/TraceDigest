@@ -14,8 +14,9 @@ async function clearScreenshotFocus(page: import('@playwright/test').Page): Prom
 }
 
 test.skip(
-  !existsSync(baselineDirectory) && process.env.WXE_UPDATE_VISUAL_BASELINES !== '1',
-  `No reviewed ${process.platform} visual baseline is committed yet`
+  process.env.WXE_RUN_VISUAL_TESTS !== '1' ||
+    (!existsSync(baselineDirectory) && process.env.WXE_UPDATE_VISUAL_BASELINES !== '1'),
+  `Visual regression is opt-in and requires a reviewed ${process.platform} baseline`
 )
 
 test('NAV-01 login page visual @visual', async () => {

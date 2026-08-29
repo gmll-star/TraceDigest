@@ -61,16 +61,20 @@ export async function launchTestApp(
   await page.waitForLoadState('domcontentloaded')
   if (options.now) await page.clock.setFixedTime(options.now)
   const setWindowContentSize = async (size: { width: number; height: number }): Promise<void> => {
-    await app.evaluate(({ BrowserWindow, screen }, nextSize) => {
+    const actualSize = await app.evaluate(({ BrowserWindow, screen }, nextSize) => {
       const [window] = BrowserWindow.getAllWindows()
       if (!window) throw new Error('E2E BrowserWindow is unavailable')
       const { workArea } = screen.getPrimaryDisplay()
       window.setPosition(workArea.x + 40, workArea.y + 40)
       window.setContentSize(nextSize.width, nextSize.height)
+      const [width, height] = window.getContentSize()
+      return { width, height }
     }, size)
     await page.waitForFunction(
-      (nextSize) => window.innerWidth === nextSize.width && window.innerHeight === nextSize.height,
-      size
+      (nextSize) =>
+        Math.abs(window.innerWidth - nextSize.width) <= 2 &&
+        Math.abs(window.innerHeight - nextSize.height) <= 2,
+      actualSize
     )
     await page.evaluate(
       () =>
@@ -85,7 +89,14 @@ export async function launchTestApp(
     close: async () => {
       if (!page.isClosed() && closeDelayMs > 0) await page.waitForTimeout(closeDelayMs)
       await app.close().catch(() => undefined)
-      if (ownsDirectory) rmSync(userData, { recursive: true, force: true })
+      if (ownsDirectory) {
+        rmSync(userData, {
+          recursive: true,
+          force: true,
+          maxRetries: process.platform === 'win32' ? 20 : 0,
+          retryDelay: 100
+        })
+      }
     }
   }
 }

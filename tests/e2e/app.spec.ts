@@ -117,7 +117,7 @@ test('KEY-03 changing one key does not invalidate archive data or unrelated sett
 
 test('NAV-01 NAV-02 every top-level page is unique and switchable', async () => {
   const fixture = await launchTestApp()
-  const labels = ['档案', '问问微信', '日报', 'Agent', '导出', 'API', '设置']
+  const labels = ['档案', '日报', 'Agent', '导出', '设置']
   try {
     const navigation = fixture.page.getByRole('navigation', { name: '一级导航' })
     await expect(navigation).toBeVisible()
@@ -126,6 +126,8 @@ test('NAV-01 NAV-02 every top-level page is unique and switchable', async () => 
       await navigation.getByRole('button', { name: label }).click()
       await expect(fixture.page.locator(`main.app-shell-main[aria-label="${label}"]`)).toBeVisible()
     }
+    await expect(navigation.getByRole('button', { name: '问问微信' })).toHaveCount(0)
+    await expect(navigation.getByRole('button', { name: 'API' })).toHaveCount(0)
   } finally {
     await fixture.close()
   }
@@ -618,61 +620,6 @@ test('AGENT-01 Agent Hub controls stay usable in the offline narrow layout', asy
   }
 })
 
-test('API-01 manages the local API token and previews the Reader Skill safely', async () => {
-  const fixture = await launchTestApp()
-  const pageErrors: Error[] = []
-  fixture.page.on('pageerror', (error) => pageErrors.push(error))
-  try {
-    await fixture.setWindowContentSize({ width: 1000, height: 650 })
-    await fixture.page.getByRole('button', { name: 'API' }).click()
-    await expect(fixture.page.getByText('API Token', { exact: true })).toBeVisible()
-    await expect(fixture.page.getByText('••••••••••••••••')).toBeVisible()
-    await expect(fixture.page.getByText('fixture-api-token')).toHaveCount(0)
-
-    await fixture.page.getByRole('button', { name: '显示 Token' }).click()
-    await expect(fixture.page.getByText('fixture-api-token')).toBeVisible()
-
-    fixture.page.once('dialog', (dialog) => dialog.accept())
-    await fixture.page.getByRole('button', { name: '重新生成 Token' }).click()
-    await expect(fixture.page.getByText('Token 已生成')).toBeVisible()
-
-    const moreTrigger = fixture.page
-      .locator('#api-reader-skill')
-      .getByRole('button', { name: '更多' })
-    await moreTrigger.click()
-    await expect(fixture.page.getByRole('menuitem', { name: '打开本地文件夹' })).toBeVisible()
-    await fixture.page.keyboard.press('Escape')
-    await expect(fixture.page.getByRole('menu')).toHaveCount(0)
-    await expect(moreTrigger).toBeFocused()
-
-    const previewTrigger = fixture.page
-      .locator('#api-reader-skill')
-      .getByRole('button', { name: '预览 Skill' })
-    await expect(previewTrigger).toBeEnabled()
-    await previewTrigger.click()
-    const previewDialog = fixture.page.getByRole('dialog', {
-      name: 'TraceMemo Reader Skill 预览'
-    })
-    await expect(previewDialog).toBeVisible()
-    await expect(previewDialog.getByRole('heading', { name: '能力' })).toBeVisible()
-    await previewDialog.getByRole('button', { name: '原始文本' }).click()
-    await expect(previewDialog.getByText(/# TraceMemo Reader/)).toBeVisible()
-    expect(
-      await fixture.page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
-    ).toBe(true)
-    expect(
-      await previewDialog.evaluate((element) => element.scrollWidth <= element.clientWidth)
-    ).toBe(true)
-    expect(pageErrors).toEqual([])
-
-    await fixture.page.keyboard.press('Escape')
-    await expect(previewDialog).toHaveCount(0)
-    await expect(previewTrigger).toBeFocused()
-  } finally {
-    await fixture.close()
-  }
-})
-
 test('EXPORT-01 multi-chat selection stays local to export and forces HTML', async () => {
   const fixture = await launchTestApp()
   const pageErrors: Error[] = []
@@ -780,7 +727,7 @@ test('LAYOUT-01 core workspaces fit a narrow desktop viewport without page error
   try {
     await fixture.setWindowContentSize({ width: 820, height: 600 })
     const navigation = fixture.page.getByRole('navigation', { name: '一级导航' })
-    for (const pageName of ['档案', '问问微信', '日报', '导出', 'API', '设置']) {
+    for (const pageName of ['档案', '日报', 'Agent', '导出', '设置']) {
       await navigation.getByRole('button', { name: pageName }).click()
       await expect(fixture.page.locator('main.app-shell-main')).not.toBeEmpty()
       expect(
@@ -872,50 +819,6 @@ test('MEDIA-02 MEDIA-04 return accurate unsupported and HTTP 403 reasons', async
       failureCode: 'access_denied',
       httpStatus: 403
     })
-  } finally {
-    await fixture.close()
-  }
-})
-
-test('ASK-01 uses the local fixed AI service and keeps evidence in the UI', async () => {
-  const fixture = await launchTestApp()
-  const pageErrors: Error[] = []
-  fixture.page.on('pageerror', (error) => pageErrors.push(error))
-  try {
-    await fixture.setWindowContentSize({ width: 820, height: 600 })
-    await fixture.page.getByRole('button', { name: '问问微信' }).click()
-    await fixture.page.getByPlaceholder(/例如：技术交流群/).fill('测试群讨论了什么？')
-    await fixture.page.getByRole('button', { name: '开始分析' }).click()
-    await expect(fixture.page.getByText(/固定假回答：测试数据中的核心流程正常/)).toBeVisible({
-      timeout: 15_000
-    })
-
-    await fixture.page.getByRole('button', { name: /历史提问/ }).click()
-    await fixture.page.getByRole('button', { name: '测试群讨论了什么？', exact: true }).click()
-    const toastClose = fixture.page.getByRole('button', { name: '关闭通知' })
-    await expect(toastClose).toBeVisible()
-    expect(await toastClose.boundingBox()).toMatchObject({ width: 28, height: 28 })
-    await toastClose.click()
-    await expect(toastClose).toHaveCount(0)
-
-    expect(
-      await fixture.page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
-    ).toBe(true)
-    expect(pageErrors).toEqual([])
-  } finally {
-    await fixture.close()
-  }
-})
-
-test('ASK-02 AI failures are recoverable and do not break the archive', async () => {
-  const fixture = await launchTestApp({ aiFailure: '429' })
-  try {
-    await fixture.page.getByRole('button', { name: '问问微信' }).click()
-    await fixture.page.getByPlaceholder(/例如：技术交流群/).fill('测试')
-    await fixture.page.getByRole('button', { name: '开始分析' }).click()
-    await expect(fixture.page.getByText(/本地假服务错误 429/)).toBeVisible()
-    await fixture.page.getByRole('button', { name: '档案' }).click()
-    await expect(fixture.page.getByText('产品测试群', { exact: true })).toBeVisible()
   } finally {
     await fixture.close()
   }
