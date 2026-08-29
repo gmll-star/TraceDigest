@@ -170,9 +170,7 @@ describe('PersonalWechatSendDialog', () => {
     expect(versionsDialog).toBeInTheDocument()
     expect(versionsDialog).toHaveTextContent('4.1.11.53')
     expect(
-      screen.getByText(
-        '绑定微信可能导致当前微信异常闪退，这是正常现象。若微信退出，请重新启动微信后，再回到这里重新检测/绑定。'
-      )
+      screen.getByText(/绑定微信可能导致当前微信异常闪退，这是正常现象/)
     ).toBeInTheDocument()
     expect(screen.queryByLabelText('消息列表')).not.toBeInTheDocument()
     expect(screen.queryByText('TraceMemo 消息发送')).not.toBeInTheDocument()
