@@ -61,25 +61,18 @@ export async function launchTestApp(
   await page.waitForLoadState('domcontentloaded')
   if (options.now) await page.clock.setFixedTime(options.now)
   const setWindowContentSize = async (size: { width: number; height: number }): Promise<void> => {
-    const actualSize = await app.evaluate(({ BrowserWindow, screen }, nextSize) => {
+    await app.evaluate(({ BrowserWindow, screen }, nextSize) => {
       const [window] = BrowserWindow.getAllWindows()
       if (!window) throw new Error('E2E BrowserWindow is unavailable')
       const { workArea } = screen.getPrimaryDisplay()
       window.setPosition(workArea.x + 40, workArea.y + 40)
       window.setContentSize(nextSize.width, nextSize.height)
-      const [width, height] = window.getContentSize()
-      return { width, height }
     }, size)
-    await page.waitForFunction(
-      (nextSize) =>
-        Math.abs(window.innerWidth - nextSize.width) <= 2 &&
-        Math.abs(window.innerHeight - nextSize.height) <= 2,
-      actualSize
-    )
-    await page.evaluate(
-      () =>
-        new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
-    )
+    // Native window sizes and renderer CSS pixels can differ on Windows when display scaling is
+    // enabled, while macOS runners may clamp the requested size to the available work area. Also,
+    // requestAnimationFrame may be suspended on headless Windows CI. A short Playwright-side wait
+    // lets the resize settle without relying on either exact dimensions or renderer animation.
+    await page.waitForTimeout(100)
   }
   return {
     app,
