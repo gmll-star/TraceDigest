@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
-import { Sidebar } from './components/Sidebar'
-import ChatWindow from './components/ChatWindow'
 import { AppShell } from './components/layout/AppShell'
 import { SettingsWorkspace } from './features/settings/SettingsWorkspace'
 import { AgentHubWorkspace } from './features/agent-hub/AgentHubWorkspace'
+import { AskAIWorkspace } from './features/ask-ai/AskAIWorkspace'
 import type { SettingsCategoryId } from './features/settings/model/types'
 import type {
   AIProviderSummary,
@@ -39,8 +38,6 @@ import { runtimePlatform } from './utils/runtime-environment'
 import { useToast } from './components/ui'
 import { AppUpdatePrompt } from './features/app-update/AppUpdatePrompt'
 
-const SIDEBAR_MIN_WIDTH = 260
-const SIDEBAR_MAX_WIDTH = 380
 const DATABASE_CONNECT_TIMEOUT_MS = 30_000
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
@@ -71,8 +68,7 @@ interface SelfInfo {
   accountRoot: string
 }
 
-const MAC_KEY_FAQ_URL =
-  'https://github.com/gmll-star/TraceDigest/blob/main/docs/mac-disable-sip.md'
+const MAC_KEY_FAQ_URL = 'https://github.com/gmll-star/TraceDigest/blob/main/docs/mac-disable-sip.md'
 const FIRST_USE_WELCOME_SEEN_KEY = 'wxe_first_use_welcome_seen'
 const MESSAGE_MONITOR_DEBOUNCE_MS = 8000
 const INITIAL_MESSAGE_COUNT = 20
@@ -225,7 +221,7 @@ function App(): React.ReactElement {
   const [messages, setMessages] = useState<Message[]>([])
   const [isMessagesLoading, setIsMessagesLoading] = useState(false)
   const [messageHistoryStatus, setMessageHistoryStatus] = useState<'idle' | 'end' | 'error'>('idle')
-  const [filteredContacts, setFilteredContacts] = useState<Contact[]>([])
+  const [, setFilteredContacts] = useState<Contact[]>([])
   const [contentFilter, setContentFilter] = useState('')
   const [isFetchingDbKey, setIsFetchingDbKey] = useState(false)
   const [dbKeyStatus, setDbKeyStatus] = useState('')
@@ -242,8 +238,7 @@ function App(): React.ReactElement {
   const [connectionGuideStep, setConnectionGuideStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1)
   const [databaseEnvironment, setDatabaseEnvironment] = useState<DatabaseKeyEnvironment>()
   const connectionOperationRef = React.useRef(0)
-  const [activePage, setActivePage] = useState<AppPage>('archive')
-  const [archiveJumpTime, setArchiveJumpTime] = useState<number | null>(null)
+  const [activePage, setActivePage] = useState<AppPage>('ask-ai')
   const [settingsCategory, setSettingsCategory] = useState<SettingsCategoryId>('account-database')
   const [reportSourceContact, setReportSourceContact] = useState<Contact | null>(null)
   const [reportWorkspaceView, setReportWorkspaceView] = useState<ReportWorkspaceView>('result')
@@ -1118,7 +1113,7 @@ function App(): React.ReactElement {
     setIsDatabaseConnecting(false)
     setBootState('login')
     setDatabaseConnectionMode(dbKey ? 'manual' : 'automatic')
-    setActivePage('archive')
+    setActivePage('ask-ai')
     setSettingsCategory('database-key')
     setSelectedContact(null)
     setMessages([])
@@ -1175,7 +1170,6 @@ function App(): React.ReactElement {
   }
 
   const handleSelectContact = async (contact: Contact, forceLive = false): Promise<void> => {
-    setArchiveJumpTime(null)
     setSelectedContact(contact)
     selectedContactMd5Ref.current = contact.md5
     currentGroupSnapshotRef.current = null
@@ -1405,10 +1399,6 @@ function App(): React.ReactElement {
     mergeSyntheticMessages
   ])
 
-  const handleSearchContacts = (keyword: string): void => {
-    setFilteredContacts(filterContactList(contacts, keyword))
-  }
-
   const handleRefreshContacts = async (filterKeyword: string): Promise<void> => {
     try {
       await loadContacts({ waitForAvatars: false, filterKeyword })
@@ -1424,7 +1414,9 @@ function App(): React.ReactElement {
 
   const handlePageChange = (page: AppPage): void => {
     setActivePage(page)
-    if (page === 'archive' && selectedContact) void handleSelectContact(selectedContact)
+    if (page === 'ask-ai' && selectedContact && isGroupContact(selectedContact)) {
+      void handleSelectContact(selectedContact)
+    }
     if (page === 'settings') setSettingsCategory('account-database')
     if (page === 'report' && isGroupContact(selectedContact) && !reportSourceContact) {
       setReportSourceContact(selectedContact)
@@ -1681,42 +1673,6 @@ function App(): React.ReactElement {
     return { success: true }
   }
 
-  const renderArchiveWorkspace = (): React.ReactElement => (
-    <div className="app-container">
-      <Sidebar
-        contacts={filteredContacts}
-        selectedContact={selectedContact}
-        onSelectContact={handleSelectContact}
-        onSearch={handleSearchContacts}
-        onContentFilter={setContentFilter}
-        width={sidebarWidth}
-        selfInfo={selfInfo}
-        dbReady={isDatabaseConnected}
-        dbConnecting={isDatabaseConnecting}
-        onOpenSettings={openSettings}
-        onRefresh={handleRefreshContacts}
-      />
-      <div className="resizer" onMouseDown={startResizing} />
-      <ChatWindow
-        key={selectedContact?.md5}
-        contact={selectedContact}
-        messages={messages}
-        isLoadingMessages={isMessagesLoading}
-        messageHistoryStatus={messageHistoryStatus}
-        contentFilter={contentFilter}
-        onContentFilterChange={setContentFilter}
-        onRefresh={() => selectedContact && handleSelectContact(selectedContact, true)}
-        onRefreshData={loadContacts}
-        onReloadAvatars={handleReloadCurrentAvatars}
-        onLoadOlderMessages={handleLoadOlderMessages}
-        onCreateGroupReport={handleOpenReportWorkspace}
-        onOpenTextToSpeechSettings={openTextToSpeechSettings}
-        isAiLoading={reportGeneration.isGenerating}
-        jumpToTime={archiveJumpTime}
-      />
-    </div>
-  )
-
   const renderReportWorkspace = (): React.ReactElement =>
     reportWorkspaceView === 'result' ? (
       <div className="report-center-page">
@@ -1816,8 +1772,26 @@ function App(): React.ReactElement {
 
   const renderCurrentWorkspace = (): React.ReactElement => {
     switch (activePage) {
-      case 'archive':
-        return renderArchiveWorkspace()
+      case 'ask-ai':
+        return (
+          <AskAIWorkspace
+            contacts={contacts}
+            selectedContact={selectedContact}
+            messages={messages}
+            isLoadingMessages={isMessagesLoading}
+            messageHistoryStatus={messageHistoryStatus}
+            contentFilter={contentFilter}
+            onContentFilterChange={setContentFilter}
+            onSelectGroup={handleSelectContact}
+            onRefreshGroups={handleRefreshContacts}
+            onRefreshData={() => loadContacts()}
+            onReloadAvatars={handleReloadCurrentAvatars}
+            onLoadOlderMessages={handleLoadOlderMessages}
+            onCreateGroupReport={handleOpenReportWorkspace}
+            onOpenTextToSpeechSettings={openTextToSpeechSettings}
+            isAiReportLoading={reportGeneration.isGenerating}
+          />
+        )
       case 'report':
         return renderReportWorkspace()
       case 'agent-hub':
@@ -1888,45 +1862,6 @@ function App(): React.ReactElement {
         )
     }
   }
-
-  const [sidebarWidth, setSidebarWidth] = useState(300)
-  const [isResizing, setIsResizing] = useState(false)
-  const sidebarResizeStartRef = React.useRef({ x: 0, width: 300 })
-
-  const startResizing = React.useCallback(
-    (mouseDownEvent: React.MouseEvent<HTMLDivElement>) => {
-      sidebarResizeStartRef.current = {
-        x: mouseDownEvent.clientX,
-        width: sidebarWidth
-      }
-      setIsResizing(true)
-    },
-    [sidebarWidth]
-  )
-
-  const stopResizing = React.useCallback(() => {
-    setIsResizing(false)
-  }, [])
-
-  const resize = React.useCallback(
-    (mouseMoveEvent: MouseEvent) => {
-      if (isResizing) {
-        const { x, width } = sidebarResizeStartRef.current
-        const nextWidth = width + mouseMoveEvent.clientX - x
-        setSidebarWidth(Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, nextWidth)))
-      }
-    },
-    [isResizing]
-  )
-
-  React.useEffect(() => {
-    window.addEventListener('mousemove', resize)
-    window.addEventListener('mouseup', stopResizing)
-    return () => {
-      window.removeEventListener('mousemove', resize)
-      window.removeEventListener('mouseup', stopResizing)
-    }
-  }, [resize, stopResizing])
 
   if (!isAuthenticated && bootState !== 'login') {
     const title =

@@ -726,6 +726,16 @@ const agentHubStatus = () => ({
 handle('agent-hub:getStatus', agentHubStatus)
 handle('agent-hub:getLogs', () => [])
 handle('agent-hub:clearLogs', () => ({ success: true }))
+handle('agent-hub:getPromptSettings', () => ({ customInstructions: '', maxLength: 4000 }))
+handle('agent-hub:savePromptSettings', (customInstructions) => ({
+  success: true,
+  settings: { customInstructions: String(customInstructions || '').trim(), maxLength: 4000 }
+}))
+handle('agent-hub:askLocal', (request) => ({
+  success: true,
+  answer: `测试 AI 已读取“${request.groupName}”：${request.question}`,
+  toolCallCount: 1
+}))
 handle('agent-hub:startLogin', () => ({ status: agentHubStatus() }))
 handle('agent-hub:cancelLogin', () => ({ status: agentHubStatus() }))
 handle('agent-hub:disconnect', () => ({ status: agentHubStatus() }))

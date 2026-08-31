@@ -271,7 +271,7 @@ export class AIProviderService {
     try {
       const resolved = this.resolveProvider(options)
       if (resolved.provider.type === 'anthropic-messages') {
-        throw new Error('Agent Hub 只读工具暂时需要 OpenAI Compatible 类型的 Provider')
+        throw new Error('只读 AI 助手暂时需要 OpenAI Compatible 类型的 Provider')
       }
       const provider = options?.timeoutMs
         ? {

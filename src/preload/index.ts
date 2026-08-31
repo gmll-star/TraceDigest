@@ -26,6 +26,8 @@ import type {
 } from '../shared/image-insight'
 import type {
   AgentHubLogEntry,
+  AgentHubLocalAskRequest,
+  AgentHubLocalAskResult,
   AgentHubPromptSettings,
   AgentHubPromptSettingsResult,
   AgentHubStatus
@@ -393,6 +395,8 @@ const api = {
     ipcRenderer.invoke('agent-hub:getPromptSettings'),
   saveAgentHubPromptSettings: (customInstructions: string): Promise<AgentHubPromptSettingsResult> =>
     ipcRenderer.invoke('agent-hub:savePromptSettings', customInstructions),
+  askAgentHubLocal: (request: AgentHubLocalAskRequest): Promise<AgentHubLocalAskResult> =>
+    ipcRenderer.invoke('agent-hub:askLocal', request),
   startAgentHubLogin: () => ipcRenderer.invoke('agent-hub:startLogin'),
   cancelAgentHubLogin: () => ipcRenderer.invoke('agent-hub:cancelLogin'),
   reconnectAgentHub: () => ipcRenderer.invoke('agent-hub:reconnect'),

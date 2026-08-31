@@ -13,7 +13,7 @@ const onlineStatus: AgentHubStatus = {
   accountId: 'fixture-agent'
 }
 
-describe('Agent Hub controls', () => {
+describe('Clawbot controls', () => {
   beforeEach(() => {
     window.api = {
       getAgentHubStatus: vi.fn().mockResolvedValue(onlineStatus),
@@ -71,6 +71,7 @@ describe('Agent Hub controls', () => {
     render(<AgentHubWorkspace />)
     await screen.findByText('系统就绪')
 
+    expect(screen.getByRole('heading', { name: 'Clawbot' })).toBeInTheDocument()
     expect(screen.getByText('已启用能力')).toBeInTheDocument()
     expect(screen.getByText('微信数据助手')).toBeInTheDocument()
     expect(screen.getByText('支持自然语言总结，可以这样问')).toBeInTheDocument()

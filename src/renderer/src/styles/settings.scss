@@ -1355,6 +1355,7 @@
 }
 /* SETTINGS-04: AI provider center */
 .ai-model-content {
+  width: min(100%, 1320px);
   padding-bottom: 48px;
 }
 .ai-model-default {
@@ -1463,6 +1464,9 @@
 }
 .ai-provider-editor {
   display: grid;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   gap: 18px;
   margin-top: 22px;
 }
@@ -1511,10 +1515,10 @@
 }
 .ai-model-row {
   display: grid;
-  grid-template-columns: 1fr 1fr repeat(3, auto) 110px auto auto;
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) 150px auto auto;
+  gap: 12px;
   align-items: center;
-  padding: 11px;
+  padding: 14px;
   border: 1px solid #e3e8e5;
   border-radius: 8px;
 }
@@ -1525,6 +1529,13 @@
   white-space: nowrap;
   font-weight: 400;
 }
+.ai-model-identity-grid {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
 .ai-model-row .ai-model-identity-field {
   display: grid;
   min-width: 0;
@@ -1534,6 +1545,26 @@
   font-family: inherit;
   font-size: 11px;
   font-weight: 600;
+}
+.ai-model-row .ai-model-identity-field input {
+  min-width: 0;
+  height: 42px;
+  font-size: 13px;
+}
+.ai-model-capabilities {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.ai-model-row .ai-model-capabilities label {
+  gap: 5px;
+}
+@media (max-width: 1280px) {
+  .ai-model-row {
+    grid-template-columns: minmax(0, 1fr) 140px auto auto;
+  }
 }
 .ai-provider-advanced,
 .ai-provider-preview {
@@ -1622,6 +1653,13 @@
   }
   .ai-model-row {
     grid-template-columns: 1fr 1fr;
+  }
+  .ai-model-identity-grid,
+  .ai-model-capabilities {
+    grid-column: 1 / -1;
+  }
+  .ai-model-identity-grid {
+    grid-template-columns: 1fr;
   }
   .ai-model-row label,
   .ai-model-row button {

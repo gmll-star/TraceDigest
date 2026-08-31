@@ -191,80 +191,84 @@ export function AIProviderEditor({
       >
         {provider.models.map((model, index) => (
           <div className="ai-model-row" key={`${index}-${model.id}`}>
-            <label className="ai-model-identity-field">
-              <span>模型名称</span>
-              <Input
-                value={model.name}
-                onChange={(event) => patchModel(index, { name: event.target.value })}
-                placeholder="例如：DeepSeek Chat"
-              />
-            </label>
-            <label className="ai-model-identity-field">
-              <span>模型 ID</span>
-              <Input
-                value={model.id}
-                onChange={(event) => patchModel(index, { id: event.target.value })}
-                placeholder="例如：deepseek-chat"
-              />
-            </label>
-            <label htmlFor={`ai-model-chat-${index}`}>
-              <Checkbox
-                id={`ai-model-chat-${index}`}
-                aria-label={`聊天 ${model.name || index + 1}`}
-                checked={model.capabilities.chat}
-                onCheckedChange={(checked) =>
-                  patchModel(index, {
-                    capabilities: { ...model.capabilities, chat: checked === true }
-                  })
-                }
-              />
-              聊天
-            </label>
-            <label htmlFor={`ai-model-vision-${index}`}>
-              <Checkbox
-                id={`ai-model-vision-${index}`}
-                aria-label={`图片理解 ${model.name || index + 1}`}
-                checked={model.capabilities.vision}
-                onCheckedChange={(checked) => {
-                  const vision = checked === true
-                  // OCR 是 vision 的派生能力:勾 vision 时自动带 OCR
-                  patchModel(index, {
-                    capabilities: {
-                      ...model.capabilities,
-                      vision,
-                      ocr: vision ? true : model.capabilities.ocr
-                    }
-                  })
-                }}
-              />
-              图片理解
-            </label>
-            <label htmlFor={`ai-model-ocr-${index}`} title="图片文字识别,跟随图片理解能力">
-              <Checkbox
-                id={`ai-model-ocr-${index}`}
-                aria-label={`图片文字识别 ${model.name || index + 1}`}
-                checked={model.capabilities.ocr}
-                onCheckedChange={(checked) =>
-                  patchModel(index, {
-                    capabilities: { ...model.capabilities, ocr: checked === true }
-                  })
-                }
-              />
-              图片文字识别
-            </label>
-            <label htmlFor={`ai-model-long-context-${index}`}>
-              <Checkbox
-                id={`ai-model-long-context-${index}`}
-                aria-label={`长上下文 ${model.name || index + 1}`}
-                checked={model.capabilities.longContext}
-                onCheckedChange={(checked) =>
-                  patchModel(index, {
-                    capabilities: { ...model.capabilities, longContext: checked === true }
-                  })
-                }
-              />
-              长上下文
-            </label>
+            <div className="ai-model-identity-grid">
+              <label className="ai-model-identity-field">
+                <span>模型名称</span>
+                <Input
+                  value={model.name}
+                  onChange={(event) => patchModel(index, { name: event.target.value })}
+                  placeholder="例如：DeepSeek Chat"
+                />
+              </label>
+              <label className="ai-model-identity-field">
+                <span>模型 ID</span>
+                <Input
+                  value={model.id}
+                  onChange={(event) => patchModel(index, { id: event.target.value })}
+                  placeholder="例如：deepseek-chat"
+                />
+              </label>
+            </div>
+            <div className="ai-model-capabilities">
+              <label htmlFor={`ai-model-chat-${index}`}>
+                <Checkbox
+                  id={`ai-model-chat-${index}`}
+                  aria-label={`聊天 ${model.name || index + 1}`}
+                  checked={model.capabilities.chat}
+                  onCheckedChange={(checked) =>
+                    patchModel(index, {
+                      capabilities: { ...model.capabilities, chat: checked === true }
+                    })
+                  }
+                />
+                聊天
+              </label>
+              <label htmlFor={`ai-model-vision-${index}`}>
+                <Checkbox
+                  id={`ai-model-vision-${index}`}
+                  aria-label={`图片理解 ${model.name || index + 1}`}
+                  checked={model.capabilities.vision}
+                  onCheckedChange={(checked) => {
+                    const vision = checked === true
+                    // OCR 是 vision 的派生能力:勾 vision 时自动带 OCR
+                    patchModel(index, {
+                      capabilities: {
+                        ...model.capabilities,
+                        vision,
+                        ocr: vision ? true : model.capabilities.ocr
+                      }
+                    })
+                  }}
+                />
+                图片理解
+              </label>
+              <label htmlFor={`ai-model-ocr-${index}`} title="图片文字识别,跟随图片理解能力">
+                <Checkbox
+                  id={`ai-model-ocr-${index}`}
+                  aria-label={`图片文字识别 ${model.name || index + 1}`}
+                  checked={model.capabilities.ocr}
+                  onCheckedChange={(checked) =>
+                    patchModel(index, {
+                      capabilities: { ...model.capabilities, ocr: checked === true }
+                    })
+                  }
+                />
+                图片文字识别
+              </label>
+              <label htmlFor={`ai-model-long-context-${index}`}>
+                <Checkbox
+                  id={`ai-model-long-context-${index}`}
+                  aria-label={`长上下文 ${model.name || index + 1}`}
+                  checked={model.capabilities.longContext}
+                  onCheckedChange={(checked) =>
+                    patchModel(index, {
+                      capabilities: { ...model.capabilities, longContext: checked === true }
+                    })
+                  }
+                />
+                长上下文
+              </label>
+            </div>
             <Input
               aria-label={`最大 Token ${index + 1}`}
               type="number"

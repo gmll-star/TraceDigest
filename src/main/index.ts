@@ -1776,6 +1776,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('agent-hub:savePromptSettings', (_, customInstructions: unknown) =>
     agentHubService.savePromptSettings(customInstructions)
   )
+  ipcMain.handle('agent-hub:askLocal', (_, request) => agentHubService.askLocal(request))
   ipcMain.handle('agent-hub:startLogin', () => agentHubService.startLogin())
   ipcMain.handle('agent-hub:cancelLogin', () => agentHubService.cancelLogin())
   ipcMain.handle('agent-hub:reconnect', () => agentHubService.reconnect())

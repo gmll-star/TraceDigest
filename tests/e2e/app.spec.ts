@@ -118,7 +118,7 @@ test('KEY-03 changing one key does not invalidate archive data or unrelated sett
 
 test('NAV-01 NAV-02 every top-level page is unique and switchable', async () => {
   const fixture = await launchTestApp()
-  const labels = ['档案', '日报', 'Agent', '导出', '设置']
+  const labels = ['问问 AI', '日报', 'Clawbot', '导出', '设置']
   try {
     const navigation = fixture.page.getByRole('navigation', { name: '一级导航' })
     await expect(navigation).toBeVisible()
@@ -129,6 +129,23 @@ test('NAV-01 NAV-02 every top-level page is unique and switchable', async () => 
     }
     await expect(navigation.getByRole('button', { name: '问问微信' })).toHaveCount(0)
     await expect(navigation.getByRole('button', { name: 'API' })).toHaveCount(0)
+    await expect(navigation.getByRole('button', { name: '档案' })).toHaveCount(0)
+  } finally {
+    await fixture.close()
+  }
+})
+
+test('ASK-AI-01 selected group can be viewed and queried in one workspace', async () => {
+  const fixture = await launchTestApp()
+  try {
+    const groupList = fixture.page.locator('.ask-ai-group-list')
+    await groupList.getByText('产品测试群', { exact: true }).click()
+    await expect(fixture.page.getByText('这是一条脱敏测试消息', { exact: true })).toBeVisible()
+    await fixture.page.getByRole('textbox', { name: '向 AI 提问' }).fill('总结最近100条')
+    await fixture.page.getByRole('button', { name: '发送' }).click()
+    await expect(
+      fixture.page.getByText('测试 AI 已读取“产品测试群”：总结最近100条', { exact: true })
+    ).toBeVisible()
   } finally {
     await fixture.close()
   }
@@ -140,12 +157,13 @@ test('CHAT-01 archive More menu is keyboard-safe and keeps the page usable', asy
   fixture.page.on('pageerror', (error) => pageErrors.push(error))
   try {
     await fixture.setWindowContentSize({ width: 820, height: 600 })
-    const conversationSearch = fixture.page.getByRole('searchbox', { name: '搜索会话' })
+    const conversationSearch = fixture.page.getByRole('searchbox', { name: '搜索群聊' })
     await conversationSearch.fill('产品')
-    await expect(fixture.page.getByText('产品测试群', { exact: true })).toBeVisible()
+    const groupList = fixture.page.locator('.ask-ai-group-list')
+    await expect(groupList.getByText('产品测试群', { exact: true })).toBeVisible()
     await conversationSearch.fill('')
     await fixture.page.getByRole('button', { name: '刷新会话列表' }).click()
-    await fixture.page.getByText('产品测试群', { exact: true }).click()
+    await groupList.getByText('产品测试群', { exact: true }).click()
     const moreButton = fixture.page.getByRole('button', { name: '更多' })
     await moreButton.click()
     await expect(fixture.page.getByRole('menuitem', { name: '刷新数据' })).toBeVisible()
@@ -587,15 +605,15 @@ test('SETTINGS-07 voice recognition controls keep selection semantics at a narro
   }
 })
 
-test('AGENT-01 Agent Hub controls stay usable in the offline narrow layout', async () => {
+test('AGENT-01 Clawbot controls stay usable in the offline narrow layout', async () => {
   const fixture = await launchTestApp()
   const pageErrors: Error[] = []
   fixture.page.on('pageerror', (error) => pageErrors.push(error))
   try {
     await fixture.setWindowContentSize({ width: 820, height: 600 })
-    await fixture.page.getByRole('button', { name: 'Agent' }).click()
-    await expect(fixture.page.getByRole('heading', { name: 'Agent Hub' })).toBeVisible()
-    await expect(fixture.page.getByText('Agent Hub 未运行')).toBeVisible()
+    await fixture.page.getByRole('button', { name: 'Clawbot' }).click()
+    await expect(fixture.page.getByRole('heading', { name: 'Clawbot' })).toBeVisible()
+    await expect(fixture.page.getByText('Clawbot 未运行')).toBeVisible()
     await expect(fixture.page.getByRole('button', { name: '扫码登录微信机器人' })).toBeDisabled()
 
     const logSource = fixture.page.getByRole('combobox', { name: '筛选日志来源' })
@@ -628,18 +646,14 @@ test('EXPORT-01 multi-chat selection stays local to export and forces HTML', asy
   try {
     await fixture.setWindowContentSize({ width: 1000, height: 650 })
     const navigation = fixture.page.getByRole('navigation', { name: '一级导航' })
-    await fixture.page.getByRole('button', { name: '联系人 (1)' }).click()
-    await fixture.page.getByText('文件传输助手', { exact: true }).click()
-    await expect(fixture.page.getByText('转发多条内容', { exact: true })).toBeVisible()
-
     await navigation.getByRole('button', { name: '导出' }).click()
     const contactList = fixture.page.locator('.export-contact-list')
-    await expect(contactList.getByRole('button', { name: /文件传输助手/ })).toHaveAttribute(
+    await expect(contactList.getByRole('button', { name: /产品测试群/ })).toHaveAttribute(
       'aria-pressed',
       'true'
     )
     await fixture.page.getByRole('button', { name: '+ 添加聊天' }).click()
-    await contactList.getByRole('button', { name: /产品测试群/ }).click()
+    await contactList.getByRole('button', { name: /文件传输助手/ }).click()
 
     await expect(fixture.page.getByText('已选 2 / 5 个')).toBeVisible()
     await expect(fixture.page.getByRole('radio', { name: 'CSV' })).toBeDisabled()
@@ -647,7 +661,7 @@ test('EXPORT-01 multi-chat selection stays local to export and forces HTML', asy
       .getByRole('radiogroup', { name: '导出格式' })
       .getByRole('radio', { name: /HTML/ })
     await expect(htmlFormat).toBeChecked()
-    await expect(fixture.page.getByText('文件传输助手、产品测试群 · 共 2 个聊天')).toBeVisible()
+    await expect(fixture.page.getByText('产品测试群、文件传输助手 · 共 2 个聊天')).toBeVisible()
     await expect(
       fixture.page.locator('.export-preview-bubble').filter({ hasText: '这是一条脱敏测试消息' })
     ).toHaveCount(1)
@@ -656,8 +670,8 @@ test('EXPORT-01 multi-chat selection stays local to export and forces HTML', asy
     ).toBe(true)
     expect(pageErrors).toEqual([])
 
-    await navigation.getByRole('button', { name: '档案' }).click()
-    await expect(fixture.page.getByText('转发多条内容', { exact: true })).toBeVisible()
+    await navigation.getByRole('button', { name: '问问 AI' }).click()
+    await expect(fixture.page.getByRole('main', { name: '问问 AI' })).toBeVisible()
   } finally {
     await fixture.close()
   }
@@ -728,7 +742,7 @@ test('LAYOUT-01 core workspaces fit a narrow desktop viewport without page error
   try {
     await fixture.setWindowContentSize({ width: 820, height: 600 })
     const navigation = fixture.page.getByRole('navigation', { name: '一级导航' })
-    for (const pageName of ['档案', '日报', 'Agent', '导出', '设置']) {
+    for (const pageName of ['问问 AI', '日报', 'Clawbot', '导出', '设置']) {
       await navigation.getByRole('button', { name: pageName }).click()
       await expect(fixture.page.locator('main.app-shell-main')).not.toBeEmpty()
       expect(
@@ -763,14 +777,15 @@ test('ARCH-01 ARCH-02 folded chats and supported message types are represented e
     await expect(imageDialog).toHaveCount(0)
     await expect(imageTrigger).toBeFocused()
 
-    await fixture.page.getByRole('button', { name: '折叠群聊 (1)' }).click()
-    await expect(fixture.page.getByText('折叠群聊样本', { exact: true })).toBeVisible()
+    await expect(
+      fixture.page.locator('.ask-ai-group-list').getByText('折叠群聊样本', { exact: true })
+    ).toBeVisible()
   } finally {
     await fixture.close()
   }
 })
 
-test('MEDIA-01 and merged forwards work on the first interaction', async () => {
+test.skip('MEDIA-01 personal archive media viewer was removed with the archive workspace', async () => {
   const fixture = await launchTestApp()
   try {
     await fixture.page.getByRole('button', { name: '联系人 (1)' }).click()
@@ -904,10 +919,10 @@ test('REPORT-03 report failure is retryable and leaves other pages usable', asyn
     await expect(fixture.page.getByText(/本地假服务错误 401/).first()).toBeVisible()
     await expect(fixture.page.getByRole('button', { name: '使用所选模型重新生成' })).toBeEnabled()
     await expect(fixture.page.getByText(/从第三步继续/)).toBeVisible()
-    await fixture.page.getByRole('button', { name: '档案' }).click()
-    await expect(fixture.page.locator('main.app-shell-main[aria-label="档案"]')).toBeVisible()
+    await fixture.page.getByRole('button', { name: '问问 AI' }).click()
+    await expect(fixture.page.locator('main.app-shell-main[aria-label="问问 AI"]')).toBeVisible()
     await expect(
-      fixture.page.locator('.conversation-item-name').filter({ hasText: '产品测试群' }).first()
+      fixture.page.locator('.ask-ai-group-list').getByText('产品测试群', { exact: true })
     ).toBeVisible()
   } finally {
     await fixture.close()
@@ -918,7 +933,9 @@ test('CACHE-01 corrupt startup cache degrades to native fixture data', async () 
   const fixture = await launchTestApp({ corruptCache: true })
   try {
     await expect(fixture.page.getByRole('navigation', { name: '一级导航' })).toBeVisible()
-    await expect(fixture.page.getByText('产品测试群', { exact: true })).toBeVisible()
+    await expect(
+      fixture.page.locator('.ask-ai-group-list').getByText('产品测试群', { exact: true })
+    ).toBeVisible()
   } finally {
     await fixture.close()
   }

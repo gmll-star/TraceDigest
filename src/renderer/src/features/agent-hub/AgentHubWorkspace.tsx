@@ -28,7 +28,7 @@ const STATUS_LABELS: Record<WechatConnectorStatus, string> = {
 
 const LOG_SOURCE_LABELS: Record<AgentHubLogSource, string> = {
   system: '系统',
-  'agent-hub': 'Agent Hub',
+  'agent-hub': 'Clawbot',
   'wechat-connector': '微信连接器'
 }
 
@@ -158,11 +158,11 @@ export function AgentHubWorkspace(): React.ReactElement {
       <header className="agent-hub-header">
         <div>
           <div className="agent-hub-eyebrow">TraceDigest</div>
-          <h1>Agent Hub</h1>
+          <h1>Clawbot</h1>
           <p>让微信机器人安全调用聊天数据与 AI 能力。</p>
         </div>
         <span className={`agent-hub-runtime ${status.hub}`}>
-          Agent Hub {status.hub === 'online' ? '运行中' : '未运行'}
+          Clawbot {status.hub === 'online' ? '运行中' : '未运行'}
         </span>
       </header>
 
@@ -214,7 +214,7 @@ export function AgentHubWorkspace(): React.ReactElement {
                 <span />
               </div>
               <h3>{status.connector === 'error' ? '连接遇到问题' : '尚未连接微信机器人'}</h3>
-              <p>{status.error || '扫码登录后，即可从微信向 Agent Hub 提问。'}</p>
+              <p>{status.error || '扫码登录后，即可从微信向 Clawbot 提问。'}</p>
             </div>
           )}
 
@@ -250,7 +250,7 @@ export function AgentHubWorkspace(): React.ReactElement {
         <aside className="agent-hub-card agent-hub-capability-card">
           <span className="agent-hub-card-kicker">已启用能力</span>
           <h2>微信数据助手</h2>
-          <p>机器人通过本机 Agent Hub 调用 TraceDigest，不向公网暴露数据库。</p>
+          <p>机器人通过本机 Clawbot 调用 TraceDigest，不向公网暴露数据库。</p>
           <div className="agent-hub-example">
             <span>支持自然语言总结，可以这样问</span>
             <strong>“总结产品交流群最近 100 条消息”</strong>
@@ -293,7 +293,7 @@ export function AgentHubWorkspace(): React.ReactElement {
       <section className="agent-hub-card agent-hub-prompt-card">
         <div className="agent-hub-prompt-heading">
           <div>
-            <span className="agent-hub-card-kicker">Agent 行为</span>
+            <span className="agent-hub-card-kicker">Clawbot 行为</span>
             <h2>自定义总结指令</h2>
             <p>只调整总结的重点、结构、篇幅和表达方式，不会改变工具权限。</p>
           </div>
@@ -363,7 +363,7 @@ export function AgentHubWorkspace(): React.ReactElement {
               <SelectContent>
                 <SelectItem value="all">全部来源</SelectItem>
                 <SelectItem value="system">系统</SelectItem>
-                <SelectItem value="agent-hub">Agent Hub</SelectItem>
+                <SelectItem value="agent-hub">Clawbot</SelectItem>
                 <SelectItem value="wechat-connector">微信连接器</SelectItem>
               </SelectContent>
             </Select>

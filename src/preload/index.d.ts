@@ -55,6 +55,8 @@ import type {
 import type {
   AgentHubActionResult,
   AgentHubLogEntry,
+  AgentHubLocalAskRequest,
+  AgentHubLocalAskResult,
   AgentHubPromptSettings,
   AgentHubPromptSettingsResult,
   AgentHubStatus
@@ -608,6 +610,7 @@ declare global {
       saveAgentHubPromptSettings: (
         customInstructions: string
       ) => Promise<AgentHubPromptSettingsResult>
+      askAgentHubLocal: (request: AgentHubLocalAskRequest) => Promise<AgentHubLocalAskResult>
       startAgentHubLogin: () => Promise<AgentHubActionResult>
       cancelAgentHubLogin: () => Promise<AgentHubActionResult>
       reconnectAgentHub: () => Promise<AgentHubActionResult>

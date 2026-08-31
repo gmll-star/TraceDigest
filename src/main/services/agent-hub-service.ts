@@ -10,6 +10,8 @@ import type {
   AgentHubLogEntry,
   AgentHubLogLevel,
   AgentHubLogSource,
+  AgentHubLocalAskRequest,
+  AgentHubLocalAskResult,
   AgentHubPromptSettings,
   AgentHubPromptSettingsResult,
   AgentHubStatus
@@ -143,6 +145,63 @@ class AgentHubService {
       // The live log remains usable when the persistent file cannot be cleared.
     }
     this.addLog('system', 'info', '运行日志已清空')
+  }
+
+  async askLocal(input: AgentHubLocalAskRequest): Promise<AgentHubLocalAskResult> {
+    try {
+      if (!isReady()) throw new Error('TraceDigest 本地数据库尚未连接，请连接后再试')
+      const question = String(input?.question || '')
+        .trim()
+        .slice(0, 4000)
+      const groupId = String(input?.groupId || '').trim()
+      const groupName = String(input?.groupName || '').trim()
+      if (!question) throw new Error('请输入想问的问题')
+      if (!groupId || !groupName) throw new Error('请先选择一个群聊')
+
+      const now = new Date()
+      const localTime = now.toLocaleString('zh-CN', { hour12: false })
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+      const messages: AIToolChatMessage[] = [
+        {
+          role: 'system',
+          content: buildAgentHubSystemPrompt(
+            localTime,
+            timezone,
+            loadSettings().agentHubCustomInstructions
+          )
+        },
+        ...(Array.isArray(input.history) ? input.history : [])
+          .slice(-12)
+          .map((message) => ({
+            role: message.role === 'assistant' ? ('assistant' as const) : ('user' as const),
+            content: String(message.content || '')
+              .trim()
+              .slice(0, 4000)
+          }))
+          .filter((message) => message.content),
+        {
+          role: 'user',
+          content: `当前界面已选择群聊“${groupName}”，其已确认的群聊 ID 是 ${groupId}。除非我明确指定其他群聊，否则问题都针对这个群；调用读取工具时可直接使用此 ID。\n\n我的问题：${question}`
+        }
+      ]
+
+      this.addLog('agent-hub', 'info', `问问 AI 开始处理群聊“${groupName}”的提问`)
+      const completed = await this.completeReadOnlyAgent(messages)
+      this.addLog(
+        'agent-hub',
+        'info',
+        `问问 AI 已完成（只读工具调用 ${completed.toolCallCount} 次）`
+      )
+      return {
+        success: true,
+        answer: this.formatAIReply(completed.answer.slice(0, 12000)),
+        toolCallCount: completed.toolCallCount
+      }
+    } catch (error) {
+      const message = this.errorMessage(error)
+      this.addLog('agent-hub', 'error', `问问 AI 失败：${message}`)
+      return { success: false, error: message }
+    }
   }
 
   async testSend(input: { to?: string; text?: string; mediaUrl?: string }): Promise<{
@@ -288,7 +347,7 @@ class AgentHubService {
       const fail = (error: Error): void => {
         if (this.hubServer === server) this.hubServer = null
         this.patchStatus({ hub: 'error', error: error.message })
-        this.addLog('agent-hub', 'error', `TypeScript 服务启动失败：${error.message}`)
+        this.addLog('agent-hub', 'error', `Clawbot 服务启动失败：${error.message}`)
         resolve(false)
       }
       server.once('error', fail)
@@ -299,7 +358,7 @@ class AgentHubService {
           this.addLog('agent-hub', 'error', error.message)
         })
         this.patchStatus({ hub: 'online', error: undefined })
-        this.addLog('system', 'info', `Agent Hub TypeScript 服务已启动（${HUB_ADDR}）`)
+        this.addLog('system', 'info', `Clawbot 本机服务已启动（${HUB_ADDR}）`)
         this.scheduleHealthCheck()
         resolve(true)
       })
@@ -379,45 +438,51 @@ class AgentHubService {
         { role: 'user', content: text.slice(0, 4000) }
       ]
 
-      let toolCallCount = 0
-      for (let round = 0; round < MAX_AGENT_ROUNDS; round++) {
-        const result = await agentAIProvider.chatWithTools(messages, AGENT_HUB_READ_TOOLS)
-        if (!result.success) throw new Error(result.error || 'AI 调用失败')
-        const toolCalls = result.toolCalls || []
-        messages.push({
-          role: 'assistant',
-          content: result.content || null,
-          toolCalls: toolCalls.length ? toolCalls : undefined
-        })
-
-        if (!toolCalls.length) {
-          const finalAnswer = String(result.content || '').trim()
-          if (!finalAnswer) throw new Error('AI 没有返回总结')
-          await this.sendConnector(inbound, this.formatAIReply(finalAnswer.slice(0, 6000)))
-          this.addLog('agent-hub', 'info', `只读总结已回复（工具调用 ${toolCallCount} 次）`)
-          return
-        }
-
-        for (const call of toolCalls) {
-          toolCallCount += 1
-          if (toolCallCount > MAX_AGENT_TOOL_CALLS) {
-            throw new Error('本次读取步骤过多，请缩小群聊、时间或消息数量范围')
-          }
-          this.addLog('agent-hub', 'info', `AI 调用只读工具：${call.function.name}`)
-          const output = await executeAgentHubReadTool(call)
-          messages.push({
-            role: 'tool',
-            content: JSON.stringify(output),
-            toolCallId: call.id
-          })
-        }
-      }
-      throw new Error('本次读取步骤过多，请缩小群聊、时间或消息数量范围')
+      const completed = await this.completeReadOnlyAgent(messages)
+      await this.sendConnector(inbound, this.formatAIReply(completed.answer.slice(0, 6000)))
+      this.addLog('agent-hub', 'info', `只读总结已回复（工具调用 ${completed.toolCallCount} 次）`)
     } catch (error) {
       const message = this.errorMessage(error)
       this.addLog('agent-hub', 'error', `只读总结失败：${message}`)
       await this.sendConnector(inbound, `总结失败：${message}`).catch(() => undefined)
     }
+  }
+
+  private async completeReadOnlyAgent(
+    messages: AIToolChatMessage[]
+  ): Promise<{ answer: string; toolCallCount: number }> {
+    let toolCallCount = 0
+    for (let round = 0; round < MAX_AGENT_ROUNDS; round++) {
+      const result = await agentAIProvider.chatWithTools(messages, AGENT_HUB_READ_TOOLS)
+      if (!result.success) throw new Error(result.error || 'AI 调用失败')
+      const toolCalls = result.toolCalls || []
+      messages.push({
+        role: 'assistant',
+        content: result.content || null,
+        toolCalls: toolCalls.length ? toolCalls : undefined
+      })
+
+      if (!toolCalls.length) {
+        const answer = String(result.content || '').trim()
+        if (!answer) throw new Error('AI 没有返回总结')
+        return { answer, toolCallCount }
+      }
+
+      for (const call of toolCalls) {
+        toolCallCount += 1
+        if (toolCallCount > MAX_AGENT_TOOL_CALLS) {
+          throw new Error('本次读取步骤过多，请缩小群聊、时间或消息数量范围')
+        }
+        this.addLog('agent-hub', 'info', `AI 调用只读工具：${call.function.name}`)
+        const output = await executeAgentHubReadTool(call)
+        messages.push({
+          role: 'tool',
+          content: JSON.stringify(output),
+          toolCallId: call.id
+        })
+      }
+    }
+    throw new Error('本次读取步骤过多，请缩小群聊、时间或消息数量范围')
   }
 
   private formatAIReply(content: string): string {

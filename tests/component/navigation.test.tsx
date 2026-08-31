@@ -7,7 +7,7 @@ import { PRIMARY_NAV_ITEMS } from '../../src/renderer/src/components/layout/navi
 describe('PrimaryNavigation', () => {
   it('shows every real top-level page exactly once and emits the selected page', async () => {
     const onPageChange = vi.fn()
-    render(<PrimaryNavigation activePage="archive" onPageChange={onPageChange} />)
+    render(<PrimaryNavigation activePage="ask-ai" onPageChange={onPageChange} />)
 
     const navigation = screen.getByRole('navigation', { name: '一级导航' })
     expect(navigation).toBeInTheDocument()
@@ -16,6 +16,9 @@ describe('PrimaryNavigation', () => {
     }
     expect(screen.queryByRole('button', { name: '问问微信' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'API' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '档案' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '问问 AI' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Clawbot' })).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: '设置' }))
     expect(onPageChange).toHaveBeenCalledWith('settings')
